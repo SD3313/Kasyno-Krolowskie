@@ -1,0 +1,112 @@
+/* Reset podstawowych styli */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+body {
+    background-color: #1a2639; /* Ciemne tło strony */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.container {
+    width: 100%;
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+/* Górny pasek */
+.top-bar {
+    background-color: #313b72;
+    padding: 15px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 4px;
+    margin-bottom: 30px;
+}
+
+.bonus {
+    color: #4ade80; /* Jasny zielony */
+    font-weight: bold;
+    font-size: 24px;
+}
+
+.profil {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.avatar {
+    width: 35px;
+    height: 35px;
+    background-color: #ffffff;
+    border-radius: 50%;
+}
+
+/* Siatka z grami */
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+}
+
+/* Kafelek gry */
+.game-card {
+    background-color: #353f85;
+    aspect-ratio: 1.6 / 1; /* Zachowuje proporcje prostokąta */
+    border-radius: 6px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.game-card:hover {
+    transform: translateY(-3px);
+    background-color: #3c4899;
+    transform: scale(1.03);
+    box-shadow: 0 0 20px 2px rgba(255, 255, 255, 0.236);
+}
+
+.game-title {
+    color: #000000;
+    font-weight: bold;
+    font-size: 18px;
+    text-transform: lowercase;
+}
+
+
+/* Dolny pasek dekoracyjny */
+.footer-bar {
+    background-color: #384282;
+    height: 60px;
+    width: 100%;
+    margin-top: auto;
+}
+
+/* Responsywność dla mniejszych ekranów */
+@media (max-width: 768px) {
+    .games-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .games-grid {
+        grid-template-columns: 1fr;
+    }
+}
