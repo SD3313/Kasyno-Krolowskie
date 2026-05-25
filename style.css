@@ -32,10 +32,11 @@ body {
     margin-bottom: 30px;
 }
 
-.bonus {
-    color: #4ade80; /* Jasny zielony */
+.saldo {
+    color: #4ade80; 
     font-weight: bold;
     font-size: 24px;
+    width: 30%;
 }
 
 .profil {
@@ -47,11 +48,30 @@ body {
     font-size: 14px;
 }
 
+.username {
+    width: 40%;
+    height: 35px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+}
+
+.username:hover {
+    color: #aea3a3;
+    font-weight: bold;
+    font-size: 14px;
+    scale: 1.15;
+    background-color: rgba(216, 61, 110, 0.549);
+    
+}
+
 .avatar {
     width: 35px;
     height: 35px;
     background-color: #ffffff;
     border-radius: 50%;
+    object-fit: cover; 
 }
 
 /* Siatka z grami */

@@ -10,11 +10,11 @@
 
     <div class="container">
         <div class="top-bar">
-            <div class="bonus">+200 (saldo dziś)</div>
-            <div class="profil">
+            <div class="saldo" onclick="window.location.href='pages/saldo.php'">+200 (saldo dziś)</div>
+            <div class="profil" onclick="window.location.href='pages/profil.php'">
                 <span>10 gemów (środki)</span>
                 <div class="avatar"></div>
-                Username
+                <div class="username">Username</div>
             </div>
         </div>
 
