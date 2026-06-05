@@ -1,49 +1,19 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Gier</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+    
+    
+<?php
+    
+    session_start();
+    $page = $_GET['page'] ?? 'home';
+    $filePath = "pages/" . $page . ".php";
 
-    <div class="container">
-        <div class="top-bar">
-            <div class="saldo" onclick="window.location.href='pages/saldo.php'">+200 (saldo dziś)</div>
-            <div class="profil" onclick="window.location.href='pages/profil.php'">
-                <span>10 gemów (środki)</span>
-                <div class="avatar"></div>
-                <div class="username">Username</div>
-            </div>
-        </div>
 
-        <div class="games-grid">
-            
-            <div class="game-card" onclick="window.location.href='pages/bomb_sweep.php'">
-                <span class="game-title">bomb sweep</span>
-            </div>
+    include 'header.php';
 
-            <div class="game-card" onclick="window.location.href='pages/dice.php'">
-                <span class="game-title">dice</span>
-            </div>
+    if (file_exists($filePath)) {
+        include $filePath;
+    } else {
+        echo "<h1>Błąd 404</h1><p>Strona o podanym adresie nie istnieje.</p>";
+    }
 
-            <div class="game-card" onclick="window.location.href='pages/ruletka.php'">
-                <span class="game-title">ruletka</span>
-            </div>
-
-            <div class="game-card" onclick="window.location.href='pages/crash.php'">
-                <span class="game-title">crash</span>
-            </div>
-
-            <div class="game-card" onclick="window.location.href='pages/coin_flip.php'">
-                <span class="game-title">coin flip</span>
-            </div>
-
-        </div>
-    </div>
-
-    <div class="footer-bar"></div>
-
-</body>
-</html>
+    include 'footer.php';
+?>
