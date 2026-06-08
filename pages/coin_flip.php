@@ -1,10 +1,8 @@
 <?php
+require_once __DIR__ . '/../init_session.php';
+$balance = (int) $_SESSION['user_balance'];
 
-if (!isset($_SESSION['cg_balance'])) {
-    $_SESSION['cg_balance'] = 1000;
-}
 
-$balance = $_SESSION['cg_balance'];
 $result  = null;
 $won     = null;
 $message = '';
@@ -14,7 +12,6 @@ $error   = '';
 if (isset($_POST['quick_bet'])) {
     $fraction  = (float) $_POST['quick_bet'];
     $quick_val = max(1, (int) floor($balance * $fraction));
-    // Przekieruj z zakładem ustawionym w GET, żeby formularz nie był dwukrotnie wysłany
     header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?') . '?bet=' . $quick_val
         . (isset($_POST['choice']) ? '&choice=' . urlencode($_POST['choice']) : ''));
     exit;
@@ -26,7 +23,7 @@ $prefill_choice = isset($_GET['choice']) ? (string) $_GET['choice'] : '';
 
 // --- Reset salda ---
 if (isset($_POST['reset'])) {
-    $_SESSION['cg_balance'] = 1000;
+    $_SESSION['user_balance'] = 1000;
     header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
     exit;
 }
@@ -45,14 +42,14 @@ if (isset($_POST['play'])) {
         $won    = ($result === $choice);
 
         if ($won) {
-            $_SESSION['cg_balance'] += $bet;
+            $_SESSION['user_balance'] += $bet;
             $message = 'Wygrałeś ' . $bet . ' żetonów!';
         } else {
-            $_SESSION['cg_balance'] -= $bet;
+            $_SESSION['user_balance'] -= $bet;
             $message = 'Przegrałeś ' . $bet . ' żetonów.';
         }
 
-        $balance        = $_SESSION['cg_balance'];
+        $balance        = $_SESSION['user_balance'];
         $prefill_bet    = $bet;
         $prefill_choice = $choice;
     }
@@ -490,3 +487,25 @@ if ($result) $coin_class .= $won ? ' coin-game__coin--win' : ' coin-game__coin--
     </form>
 
 </div>
+
+<script>
+// Po załadowaniu i po każdej grze, synchronizuj nagłówek
+document.addEventListener('DOMContentLoaded', function() {
+    const balance = <?= (int) $balance ?>;
+    if (typeof updateHeaderBalance === 'function') {
+        updateHeaderBalance(balance);
+    }
+});
+
+// Po wysłaniu formularza, zaraz potem też
+document.querySelectorAll('form').forEach(form => {
+    form.addEventListener('submit', function() {
+        setTimeout(() => {
+            const balance = <?= (int) $balance ?>;
+            if (typeof updateHeaderBalance === 'function') {
+                updateHeaderBalance(balance);
+            }
+        }, 100);
+    });
+});
+</script>

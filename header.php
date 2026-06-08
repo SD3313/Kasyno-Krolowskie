@@ -1,3 +1,7 @@
+<?php
+require_once 'init_session.php';
+$balance = $_SESSION['user_balance'] ?? 0;
+?>
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -9,8 +13,10 @@
 <body>
     <div class="container">
         <div class="top-bar">
-            <div class="saldo" onclick="window.location.href='pages/saldo.php'">+200 (saldo dziś)</div>
-            <div class="profil" onclick="window.location.href='pages/profil.php'">
+            <div class="saldo" id="headerBalance" onclick="window.location.href='?page=saldo'">
+                💰 <span id="headerBalanceValue"><?= $balance ?></span> żetonów (saldo)
+            </div>
+            <div class="profil" onclick="window.location.href='?page=profil'">
                 <span>10 gemów (środki)</span>
                 <div class="avatar"></div>
                 <div class="username">Username</div>
