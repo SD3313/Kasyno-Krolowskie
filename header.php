@@ -8,7 +8,7 @@ $balance = $_SESSION['user_balance'] ?? 0;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Gier</title>
-    <link rel="stylesheet" href="style.css?23">
+    <link rel="stylesheet" href="style.css?233">
 </head>
 <body>
     <div class="container">

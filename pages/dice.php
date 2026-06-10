@@ -26,12 +26,6 @@ $prefill_choice    = isset($_GET['choice'])    ? (string) $_GET['choice']    : '
 $prefill_threshold = isset($_GET['threshold']) ? (float)  $_GET['threshold'] : 0.50;
 $prefill_threshold = max(0.01, min(0.99, $prefill_threshold));
 
-// --- Reset salda ---
-if (isset($_POST['reset'])) {
-    $_SESSION['user_balance'] = 1000;
-    header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
-    exit;
-}
 
 // --- Główna gra ---
 if (isset($_POST['play'])) {
@@ -225,15 +219,9 @@ $display_win_pct = round($disp_prob * 100, 1);
         </div>
 
     </form>
-
-    <!-- Reset salda -->
-    <form method="POST" action="">
-        <button type="submit" name="reset" value="1" class="sg__reset">
-            ↺ Reset salda (1000 żetonów)
-        </button>
-    </form>
-
+    <a href="home" class="back-btn">← Wróć do gier</a>
 </div>
+
 
 <script>
 (function () {

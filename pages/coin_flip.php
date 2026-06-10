@@ -2,7 +2,6 @@
 require_once __DIR__ . '/../init_session.php';
 $balance = (int) $_SESSION['user_balance'];
 
-
 $result  = null;
 $won     = null;
 $message = '';
@@ -157,14 +156,8 @@ if ($result) $coin_class .= $won ? ' coin-game__coin--win' : ' coin-game__coin--
         </div>
 
     </form>
-
-    <!-- Reset salda -->
-    <form method="POST" action="">
-        <button type="submit" name="reset" value="1" class="coin-game__reset">
-            ↺ Reset salda (1000 żetonów)
-        </button>
-    </form>
-
+    
+    <a href="home" class="back-btn">← Wróć do gier</a>
 </div>
 
 <script>
