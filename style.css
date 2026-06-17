@@ -104,42 +104,201 @@ HEADER
     gap: 25px;
 }
 
-/* Kafelek gry */
+/* Kafelek gry z obrazkiem */
 .game-card {
-    background-color: #353f85;
-    aspect-ratio: 1.6 / 1;
-    /* Zachowuje proporcje prostokąta */
-    border-radius: 6px;
     position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    background-size: cover;       /* wypełnia cały box */
+    background-position: center;  /* centrowanie */
+    background-repeat: no-repeat; /* bez powtarzania */
+    border-radius: 6px;
+    overflow: hidden;
     cursor: pointer;
-    transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    aspect-ratio: 1.6 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform .25s ease;
 }
 
+/* Powiększenie przy hover */
 .game-card:hover {
-    transform: translateY(-3px);
-    background-color: #3c4899;
     transform: scale(1.03);
-    box-shadow: 0 0 20px 2px rgba(255, 255, 255, 0.236);
 }
 
+/* Ciemna warstwa */
+.game-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0);
+    transition: background .25s ease;
+}
+
+/* Po najechaniu — 20% czerni */
+.game-card:hover::after {
+    background: rgba(0, 0, 0, 0.85);
+}
+
+/* Dla jasnego tła */
+.game-card[data-bg="light"]:hover::after {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.game-card[data-bg="llight"]:hover::after {
+    background: rgba(255, 255, 255, 0.70);
+}
+
+/* Tekst gry — wycięty */
 .game-title {
-    color: #000000;
-    font-weight: bold;
-    font-size: 18px;
-    text-transform: lowercase;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 50px;
+    font-weight: 900;
+
+
+    /* efekt wycięcia */
+    color: transparent;
+    background: inherit; /* pobiera tło kafelka */
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    
+
+    opacity: 0;
+    transition: opacity .25s ease;
+    z-index: 2;
 }
 
 
-/* Dolny pasek dekoracyjny */
+/* Tekst pojawia się po hover */
+.game-card:hover .game-title {
+    opacity: 1;
+}
+
+/* Przypisanie obrazków */
+.game-bomb {
+    background-image: url("photos/saper.webp");
+}
+
+.game-dice {
+    background-image: url("photos/dice.webp");
+}
+
+.game-ruletka {
+    background-image: url("photos/rulettka.avif");
+}
+
+.game-crash {
+    background-image: url("photos/crash.png");
+}
+
+.game-coin {
+    background-image: url("photos/coin_flip.jpg");
+}
+
+.game-battle {
+    background-image: url("photos/battle.png");
+}
+
+/*
+--------------------------------------------------------------
+Footer
+--------------------------------------------------------------
+*/
 .footer-bar {
     background-color: #384282;
-    height: 60px;
+    padding: 20px 0;
     width: 100%;
     margin-top: auto;
+    border-top: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.footer-warning {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    text-align: center;
+    margin: 0;
+    line-height: 1.5;
+    max-width: 800px;
+}
+
+.footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px 20px;
+}
+
+.footer-links a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s ease, transform 0.2s ease;
+    position: relative;
+}
+
+.footer-links a:hover {
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+.footer-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: white;
+    transition: width 0.3s ease;
+}
+
+.footer-links a:hover::after {
+    width: 100%;
+}
+
+.footer-separator {
+    color: rgba(255, 255, 255, 0.3);
+    user-select: none;
+}
+
+/* Responsywność */
+@media (max-width: 768px) {
+    .footer-warning {
+        font-size: 12px;
+    }
+    
+    .footer-links {
+        gap: 8px 15px;
+    }
+    
+    .footer-links a {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .footer-links {
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .footer-separator {
+        display: none;
+    }
 }
 
 /* Responsywność dla mniejszych ekranów */

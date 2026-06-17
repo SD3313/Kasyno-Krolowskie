@@ -1,5 +1,24 @@
 </div>
-<div class="footer-bar"></div>
+<div class="footer-bar">
+    <div class="footer-content">
+        <!-- Tekst ostrzeżenia -->
+        <p class="footer-warning">
+            Hazard związany jest z ryzykiem, a udział w nielegalnych grach hazardowych jest niezgodny z polskim prawem.
+        </p>
+        
+        <!-- Linki -->
+        <div class="footer-links">
+            <a href="page.php?page=regulamin">Regulamin</a>
+            <span class="footer-separator">|</span>
+            <a href="page.php?page=kontakt">Kontakt</a>
+            <span class="footer-separator">|</span>
+            <a href="page.php?page=pytania">Pytania</a>
+            <span class="footer-separator">|</span>
+            <a href="page.php?page=kontrola-rodzicielska">Kontrola rodzicielska</a>
+        </div>
+    </div>
+</div>
+</div>
 
 <script>
 // Globalna zmienna salda
