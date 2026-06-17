@@ -12,6 +12,7 @@ $routes = [
     'bomb_sweep' => 'pages/bomb_sweep.php',
     'dice' => 'pages/dice.php',
     'ruletka' => 'pages/ruletka.php',
+    'battle' => 'pages/case battle.php',
 ];
 
 $filePath = $routes[$page] ?? 'pages/' . $page . '.php';

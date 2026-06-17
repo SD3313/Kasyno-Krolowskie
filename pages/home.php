@@ -31,6 +31,11 @@
         </div>
     </a>
 
+    <a href="battle" class="game-card-link">
+        <div class="game-card">
+            <span class="game-title">battle</span>
+        </div>
+
 </div>
 
 
