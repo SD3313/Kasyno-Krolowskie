@@ -37,3 +37,15 @@
     </a>
 
 </div>
+
+<div class="coming-soon">
+    <h2>Wkrótce więcej gier!</h2>
+    <p>Pracujemy nad dodaniem nowych, ekscytujących gier.</p>
+    <p>Śledź nas, aby być na bieżąco z nowościami!</p>
+</div>
+
+<div class="news-ticker">
+    <marquee behavior="scroll" direction="left" scrollamount="5">
+        Miejsce na twoją reklame! Skontaktuj się z nami, aby dowiedzieć się więcej o możliwościach reklamowych w naszym kasynie.
+    </marquee>
+</div>
