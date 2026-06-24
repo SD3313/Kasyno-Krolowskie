@@ -1,5 +1,7 @@
 <?php
 session_start();
+require_once 'db_connect.php';
+
 $page = $_GET['page'] ?? 'home';
 
 // Routing dla podstron w podfolderach

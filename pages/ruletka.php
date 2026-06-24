@@ -233,7 +233,7 @@ $winner_cell_idx = count($tape) - $SIDE_EXTRA - 1;
 
 /* Komórka */
 .rl-cell {
-    min-width: 90px;     /* szerokie komórki */
+    min-width: 90px;   
     height: 100%;
     display: flex;
     align-items: center;

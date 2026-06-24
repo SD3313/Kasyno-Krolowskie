@@ -1,6 +1,7 @@
 <?php
 require_once 'init_session.php';
 $balance = $_SESSION['user_balance'] ?? 0;
+$logged_in = isset($_SESSION['user_id']);
 ?>
 <!DOCTYPE html>
 <html lang="pl">
@@ -14,20 +15,32 @@ $balance = $_SESSION['user_balance'] ?? 0;
     <link rel="icon" type="image/png" href="photos/icona_korona.png">
     
 
-    <link rel="stylesheet" href="style.css?233">
+    <link rel="stylesheet" href="style.css?212332">
 </head>
 <body>
     <div class="container">
         <div class="top-bar">
-            <a href="?page=home" class="logo">
+            <a href="home" class="logo">
                 <img src="/kasyno/Kasyno-Krolowskie/photos/logo.svg" alt="Logo Kasyno Królewskie">
             </a>
-            <div class="saldo" id="headerBalance" onclick="window.location.href='?page=saldo'">
-                💰 <span id="headerBalanceValue"><?= $balance ?></span> żetonów (saldo)
-            </div>
-            <div class="profil" onclick="window.location.href='?page=profil'">
-                <span>10 gemów (środki)</span>
-                <div class="avatar"></div>
-                <div class="username">Username</div>
-            </div>
+            <a href="saldo" class="saldo-link">
+                <div>
+                    💰 <span><?= $balance ?></span> żetonów (saldo)
+                </div>
+            </a>
+
+            <?php if ($logged_in): ?>
+                <a href="profil" class="profil-link">    
+                    <div class="profil" >
+                        <div class="avatar"></div>
+                        <div class="username">Username</div>
+                    </div>
+                </a>
+            <?php else: ?>
+                <a href="login" class="profil-link">    
+                    <div class="profil" >
+                        <div class="username">Zaloguj się</div>
+                    </div>
+                </a>
+            <?php endif; ?>
         </div>

@@ -11,15 +11,6 @@ if (isset($_POST['reset'])) {
 }
 
 ?>
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crash — Gra</title>
-<link rel="stylesheet" href="gry.css">
-</head>
-<body>
 
 <div class="cg">
   <p class="cg-title">Crash</p>
@@ -373,6 +364,3 @@ if (isset($_POST['reset'])) {
   updateUI();
 })();
 </script>
-
-</body>
-</html>
