@@ -2567,7 +2567,8 @@ canvas {
     margin-left: 40px;
 }
 
-.login-container {
+.login-container,
+.register-container {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -2580,20 +2581,29 @@ canvas {
     color: #c8d8ea;
 }
 
-.login-container h1 {
+.login-container h1,
+.register-container h1 {
     color: #3ddc97;
     margin-bottom: 20px;
     text-align: center;
     text-shadow: 0 0 18px rgba(61, 220, 151, .28);
 }
 
-.login-container label {
+.login-container label,
+.register-container label {
     margin-bottom: 2px;
     color: #c8d8ea;
     font-weight: bold;
 }
 
-.login-container input {
+.login-container form,
+.register-container form {
+    width: 80%;
+}
+
+.login-container input,
+.register-container input,
+.register-link {
     width: 100%;
     padding: 10px;
     margin: 10px auto;
@@ -2605,9 +2615,39 @@ canvas {
     box-sizing: border-box;
 }
 
-.login-container p {
+.register-link {
+    width: 80%;
+    text-align: center;
+    margin-top: 15px;
+    color: #c8d8ea;
+    background-color: transparent;
+    text-decoration: none;
+}
+
+.register-link:hover {
+    color: #3ddc97;
+    scale: 1.05;
+    transition: all 0.3s;
+}
+
+
+.login-container p,
+.register-container p {
     font-size: 14px;
     color: #5a7a9a;
     margin-bottom: 15px;
     text-align: center;
+}
+
+.register-container input[type="checkbox"] {
+    width: auto;
+    margin-right: 10px;
+    float: left;
+}
+
+.regulamin-label {
+    font-size: 0.65rem;
+    color: #5a7a9a;
+    margin-bottom: 15px;
+
 }

@@ -10,7 +10,7 @@
     <input type="password" id="haslo" name="haslo" required>
     <br>
     <input type="submit" value="Zaloguj się">
-
+    <br>
 <?php
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = mysqli_real_escape_string($conn, $_POST['email']);
@@ -40,4 +40,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 </form>
+<a href="register" class="register-link">Nie masz konta? Zarejestruj się!</a>
 </div>
