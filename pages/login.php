@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $row = mysqli_fetch_assoc($result);
         if (password_verify($haslo, $row['pass'])) {
             echo "<p style='color:green;'>Zalogowano pomyślnie!</p>";
-            $_SESSION['user'] = $row['first_name'];
+            $_SESSION['user'] = $row['first_name'] . ' ' . $row['last_name'];
             $_SESSION['role'] = $row['role'];
             $_SESSION['user_id'] = $row['user_id'];
             header("Location: home");

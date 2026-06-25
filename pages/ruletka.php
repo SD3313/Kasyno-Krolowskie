@@ -264,6 +264,12 @@ $winner_cell_idx = count($tape) - $SIDE_EXTRA - 1;
     50%      { filter: brightness(1.6); }
 }
 
+.coin-game__message.rl-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
 /* ════════════════════════════════
    PRZYCISKI ZAKŁADÓW
    ════════════════════════════════ */
@@ -508,28 +514,37 @@ $winner_cell_idx = count($tape) - $SIDE_EXTRA - 1;
     /* ── Animacja paska ── */
     const strip      = document.getElementById('rl-strip');
     const outer      = document.getElementById('rl-outer');
+    const messageEl  = document.querySelector('.coin-game__message');
     const PLAYED     = <?= $result !== null ? 'true' : 'false' ?>;
     const WINNER_IDX = <?= (int) $winner_cell_idx ?>;
-    const CELL_W     = 92; // 90px + 2px border
 
     if (!strip || !outer) return;
+
+    const cellElem    = strip.querySelector('.rl-cell');
+    const CELL_W      = cellElem ? Math.round(cellElem.getBoundingClientRect().width) : 92;
+    const outerW      = outer.offsetWidth;
+    const centerOff   = Math.round((outerW - CELL_W) / 2);
+    const winnerCell  = strip.querySelector('#rl-winner');
+    const winnerIndex = winnerCell ? Array.prototype.indexOf.call(strip.children, winnerCell) : WINNER_IDX;
+
+    if (PLAYED && messageEl) {
+        messageEl.classList.add('rl-hidden');
+    }
 
     if (!PLAYED) {
         // Przed grą: wyśrodkuj taśmę na ~7. komórce (środek lewego bufora)
         // żeby pasek był kolorowy, nie pusty
-        const startX = -(7 * CELL_W) + Math.floor(outer.offsetWidth / 2) - Math.floor(CELL_W / 2);
+        const startX = -(7 * CELL_W) + centerOff;
         strip.style.transition = 'none';
         strip.style.transform  = `translateX(${startX}px)`;
         return;
     }
 
     // Pozycja startowa: taśma ustawiona na początku (komórka 0 na środku)
-    const outerW    = outer.offsetWidth;
-    const centerOff = Math.floor(outerW / 2) - Math.floor(CELL_W / 2);
 
     // Komórka wyniku ma wylądować na środku paska
-    const startX  = centerOff;                           // startujemy od środka (komórka 0 widoczna)
-    const targetX = -(WINNER_IDX * CELL_W) + centerOff; // wynik na środku
+    const startX  = centerOff;                             // startujemy od środka (komórka 0 widoczna)
+    const targetX = -(winnerIndex * CELL_W) + centerOff;    // wynik na środku
 
     // Ustaw pozycję startową bez animacji
     strip.style.transition = 'none';
@@ -546,6 +561,9 @@ $winner_cell_idx = count($tape) - $SIDE_EXTRA - 1;
         strip.removeEventListener('transitionend', onEnd);
         const winner = document.getElementById('rl-winner');
         if (winner) winner.classList.add('rl-cell--winner');
+        if (messageEl) {
+            messageEl.classList.remove('rl-hidden');
+        }
     });
 
     /* ── Synchronizacja salda ── */

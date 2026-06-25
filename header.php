@@ -33,7 +33,7 @@ $logged_in = isset($_SESSION['user_id']);
                 <a href="profil" class="profil-link">    
                     <div class="profil" >
                         <div class="avatar"></div>
-                        <div class="username">Username</div>
+                        <div class="username"><?= htmlspecialchars($_SESSION['user'] ?? 'Użytkownik') ?></div>
                     </div>
                 </a>
             <?php else: ?>
