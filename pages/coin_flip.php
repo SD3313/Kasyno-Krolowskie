@@ -1,5 +1,11 @@
 <?php
-require_once __DIR__ . '/../init_session.php';
+if(!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header('Location: login');
+    exit;
+}
+
+
+
 $balance = (int) $_SESSION['user_balance'];
 
 $result  = null;
@@ -10,15 +16,15 @@ $error   = '';
 // --- Szybkie zakłady (submit przez name="quick_bet") ---
 if (isset($_POST['quick_bet'])) {
     $fraction  = (float) $_POST['quick_bet'];
-    $quick_val = max(1, (int) floor($balance * $fraction));
-    header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?') . '?bet=' . $quick_val
-        . (isset($_POST['choice']) ? '&choice=' . urlencode($_POST['choice']) : ''));
+    $_SESSION['bet'] = max(1, (int) floor($_SESSION['user_balance'] * $fraction));
+    $_SESSION['choice'] = isset($_POST['choice']) ? $_POST['choice'] : '';
+    header('Location: coin_flip');
     exit;
 }
 
 // --- Pobierz wartości z GET (po przekierowaniu szybkiego zakładu) ---
-$prefill_bet    = isset($_GET['bet'])    ? (int)   $_GET['bet']    : 50;
-$prefill_choice = isset($_GET['choice']) ? (string) $_GET['choice'] : '';
+$prefill_bet    = isset($_SESSION['bet'])    ? (int)   $_SESSION['bet']    : 50;
+$prefill_choice = isset($_SESSION['choice']) ? (string) $_SESSION['choice'] : '';
 
 // --- Reset salda ---
 if (isset($_POST['reset'])) {

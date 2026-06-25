@@ -1,14 +1,11 @@
 <?php
-require_once __DIR__ . '/../init_session.php';
-
-// Pobierz saldo z sesji zamiast inicjalizować nowe
-$balance = (int) $_SESSION['user_balance'];
-
-if (isset($_POST['reset'])) {
-    $_SESSION['user_balance'] = 1000;
-    header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
+if(!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header('Location: login');
     exit;
 }
+
+
+$balance = (int) $_SESSION['user_balance'];
 
 ?>
 
@@ -48,9 +45,8 @@ if (isset($_POST['reset'])) {
 
   <div class="history" id="histBox"></div>
 
-  <form method="POST" action="">
-    <button type="submit" name="reset" value="1" class="reset-btn">↺ Reset salda (1000 żetonów)</button>
-  </form>
+  
+  <a href="home" class="back-btn">← Wróć do gier</a>
 </div>
 
 <script>

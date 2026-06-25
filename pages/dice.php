@@ -1,5 +1,10 @@
 <?php
-require_once __DIR__ . '/../init_session.php';
+if(!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header('Location: login');
+    exit;
+}
+
+
 $balance = (int) $_SESSION['user_balance'];
 
 $result    = null;
@@ -10,20 +15,17 @@ $error     = '';
 // --- Szybkie zakłady ---
 if (isset($_POST['quick_bet'])) {
     $fraction  = (float) $_POST['quick_bet'];
-    $quick_val = max(1, (int) floor($balance * $fraction));
+    $quick_val = max(1, (int) floor($_SESSION['user_balance'] * $fraction));
     $choice    = isset($_POST['choice']) ? $_POST['choice'] : 'under';
     $threshold = isset($_POST['threshold']) ? $_POST['threshold'] : '0.50';
-    header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?')
-        . '?bet=' . $quick_val
-        . '&choice=' . urlencode($choice)
-        . '&threshold=' . urlencode($threshold));
-    exit;
-}
+    $_SESSION['bet'] = $quick_val;
+    $_SESSION['choice'] = $choice;
+    $_SESSION['threshold'] = $threshold;}
 
 // --- Pobierz wartości z GET ---
-$prefill_bet       = isset($_GET['bet'])       ? (int)    $_GET['bet']       : 50;
-$prefill_choice    = isset($_GET['choice'])    ? (string) $_GET['choice']    : '';
-$prefill_threshold = isset($_GET['threshold']) ? (float)  $_GET['threshold'] : 0.50;
+$prefill_bet       = isset($_SESSION['bet'])       ? (int)    $_SESSION['bet']       : 50;
+$prefill_choice    = isset($_SESSION['choice'])    ? (string) $_SESSION['choice']    : '';
+$prefill_threshold = isset($_SESSION['threshold']) ? (float)  $_SESSION['threshold'] : 0.50;
 $prefill_threshold = max(0.01, min(0.99, $prefill_threshold));
 
 
@@ -40,8 +42,8 @@ if (isset($_POST['play'])) {
         $error = 'Zakład musi być między 1 a ' . $balance . ' żetonami.';
     } else {
         // Losujemy liczbę z zakresu 0.00–1.00 (2 miejsca po przecinku)
-        $result = rand(0, 100) / 100;
-        $won    = ($choice === 'under') ? ($result < $threshold) : ($result > $threshold);
+        $_SESSION['result'] = rand(0, 100) / 100;
+        $won    = ($choice === 'under') ? ($_SESSION['result'] < $threshold) : ($_SESSION['result'] > $threshold);
 
         // Oblicz mnożnik na podstawie prawdopodobieństwa (z małym house edge 2%)
         $house_edge = 0.02;
@@ -100,7 +102,7 @@ $display_win_pct = round($disp_prob * 100, 1);
             <div class="sg__result-fill-under" id="sg-fill-under"></div>
             <div class="sg__result-fill-over"  id="sg-fill-over"></div>
             <div class="sg__threshold-line"    id="sg-thresh-line"></div>
-            <div class="sg__result-dot <?= $result !== null ? 'sg__result-dot--visible' : '' ?> <?= $won === true ? 'sg__result-dot--win' : ($won === false ? 'sg__result-dot--lose' : '') ?>"
+            <div class="sg__result-dot <?= isset($_SESSION['result']) ? 'sg__result-dot--visible' : '' ?> <?= $won === true ? 'sg__result-dot--win' : ($won === false ? 'sg__result-dot--lose' : '') ?>"
                  id="sg-dot"></div>
         </div>
         <div class="sg__result-labels">
@@ -112,7 +114,7 @@ $display_win_pct = round($disp_prob * 100, 1);
         </div>
         <div class="sg__rolled-value <?= $won === true ? 'sg__rolled-value--win' : ($won === false ? 'sg__rolled-value--lose' : '') ?>"
              id="sg-rolled">
-            <?= $result !== null ? number_format($result, 2) : '—' ?>
+            <?= isset($_SESSION['result']) ? number_format($_SESSION['result'], 2) : '—' ?>
         </div>
     </div>
 
@@ -204,9 +206,9 @@ $display_win_pct = round($disp_prob * 100, 1);
         if ($error):
             $inline_class = ' sg__message--error';
             $inline_text  = $error;
-        elseif ($result !== null):
+        elseif (isset($_SESSION['result'])):
             $choice_label = ($prefill_choice === 'over') ? 'Over' : 'Under';
-            $result_label = number_format($result, 2);
+            $result_label = number_format($_SESSION['result'], 2);
             $inline_class = $msg_class;
             $inline_text  = 'Wylosowano: ' . $result_label . ' — ' . $message;
         else:
@@ -281,9 +283,9 @@ $display_win_pct = round($disp_prob * 100, 1);
     }
 
     // ── Pozycja kropki po załadowaniu (jeśli wynik już jest) ──────
-    <?php if ($result !== null): ?>
+    <?php if (isset($_SESSION['result'])): ?>
     (function () {
-        const resultVal = <?= (float) $result ?>;
+        const resultVal = <?= (float) $_SESSION['result'] ?>;
         dot.style.left  = (resultVal * 100) + '%';
         // małe opóźnienie — animacja pojawia się po chwili
         setTimeout(function () {

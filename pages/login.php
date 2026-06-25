@@ -1,4 +1,3 @@
-
 <div class="login-container">
     <h1> Logowanie </h1>
     <p>Witaj w Kasynie Królewskim! Zaloguj się, aby kontynuować.</p>
@@ -28,6 +27,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user'] = $row['first_name'] . ' ' . $row['last_name'];
             $_SESSION['role'] = $row['role'];
             $_SESSION['user_id'] = $row['user_id'];
+            $_SESSION['user_balance'] = (int) $row['balance'];
+            $_SESSION['logged_in'] = true;
+            $_SESSION['profile_pic'] = $row['profile_pic'];
+            $_SESSION['email'] =$email;
+
             header("Location: home");
             exit();
         } else {

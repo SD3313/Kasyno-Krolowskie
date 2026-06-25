@@ -1,40 +1,38 @@
 <?php
+if(!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header('Location: login');
+    exit;
+}
+
+
 $balance = (int) $_SESSION['user_balance'];
 $message = '';
 $error   = '';
 
-// ── Reset salda ──────────────────────────────────────────────────
-if (isset($_POST['reset'])) {
-    $_SESSION['user_balance'] = 1000;
-    unset($_SESSION['bs_game']);
-    header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
-    exit;
-}
 
-// ── Nowa konfiguracja (wróć do ekranu startowego) ────────────────
 if (isset($_POST['go_to_config'])) {
     unset($_SESSION['bs_game']);
     header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
     exit;
 }
 
-// ── Szybkie zakłady ──────────────────────────────────────────────
+
 if (isset($_POST['quick_bet'])) {
-    $quick_val = max(1, (int) floor($balance * (float) $_POST['quick_bet']));
-    $size      = max(3, min(8, (int) ($_POST['grid_size'] ?? 5)));
-    $bombs     = max(1, min($size * $size - 1, (int) ($_POST['bombs'] ?? 3)));
-    $params    = http_build_query(['bet' => $quick_val, 'grid_size' => $size, 'bombs' => $bombs]);
-    header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?') . '?' . $params);
+    $_SESSION['quick_val'] = max(1, (int) floor($_SESSION['user_balance'] * (float) $_POST['quick_bet']));
+    $_SESSION['grid_size'] = max(3, min(8, (int) ($_POST['grid_size']?? 5)));
+    $_SESSION['bombs'] = max(1, min($_POST['grid_size'] * $_POST['grid_size'] - 1, (int) ($_POST['bombs'] ?? 3)));
+
+    header('Location: bomb_sweep');
     exit;
 }
 
 $game = $_SESSION['bs_game'] ?? null;
 
-// ── Nowa gra ─────────────────────────────────────────────────────
+
 if (isset($_POST['new_game'])) {
-    $size  = max(3, min(8, (int) ($_POST['grid_size'] ?? 5)));
+    $size  = max(3, min(8, (int) ($_SESSION['grid_size'] )));
     $cells = $size * $size;
-    $bombs = max(1, min($cells - 1, (int) ($_POST['bombs'] ?? 3)));
+    $bombs = max(1, min($cells - 1, (int) ($_SESSION['bombs'] )));
     $bet   = (int) ($_POST['bet'] ?? 0);
 
     if ($bet < 1 || $bet > $balance) {
@@ -58,7 +56,7 @@ if (isset($_POST['new_game'])) {
     }
 }
 
-// ── Odkryj pole ──────────────────────────────────────────────────
+
 if (isset($_POST['reveal']) && $game && $game['status'] === 'active') {
     $cell  = (int) $_POST['reveal'];
     $cells = $game['size'] ** 2;
@@ -99,15 +97,17 @@ if (isset($_POST['cashout']) && $game && $game['status'] === 'active' && count($
     $balance = (int) $_SESSION['user_balance'];
     $_SESSION['bs_game'] = $game;
     $message = 'Wypłaciłeś ' . $game['winnings'] . ' żetonów! (×' . number_format($game['multiplier'], 2) . ')';
+    header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
+    exit;
 }
 
 // ── Odśwież zmienne ──────────────────────────────────────────────
 $game    = $_SESSION['bs_game'] ?? null;
 $balance = (int) $_SESSION['user_balance'];
 
-$prefill_bet   = isset($_GET['bet'])  ? (int) $_GET['bet']       : 50;
-$prefill_size  = $game ? (int) $game['size']  : (isset($_GET['grid_size']) ? max(3, min(8, (int) $_GET['grid_size'])) : 5);
-$prefill_bombs = $game ? (int) $game['bombs'] : (isset($_GET['bombs']) ? (int) $_GET['bombs'] : 3);
+$prefill_bet   = isset($_SESSION['quick_val'])  ? $_SESSION['quick_val']  : 50;
+$prefill_size  = $_SESSION['grid_size'] ? (int) $_SESSION['grid_size']  : (isset($game['size'] ) ? max(3, min(8, (int) $game['size'] )) : 5);
+$prefill_bombs = $_SESSION['bombs'] ? (int) $_SESSION['bombs'] : (isset($game['bombs']) ? (int) $game['bombs'] : 3);
 
 function bs_calc_mult(int $cells, int $bombs, int $revealed): float {
     $safe = $cells - $bombs;
@@ -323,12 +323,6 @@ if ($error) {
 
     <?php endif; ?>
 
-    <!-- ── Reset salda ───────────────────────────────────────────── -->
-    <form method="POST">
-        <button type="submit" name="reset" value="1" class="bs__reset">
-            ↺ Reset salda (1000 żetonów)
-        </button>
-    </form>
 
     <a href="home" class="back-btn">← Wróć do gier</a>
 </div>

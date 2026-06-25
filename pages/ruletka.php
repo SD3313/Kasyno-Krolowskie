@@ -1,5 +1,10 @@
 <?php
-require_once __DIR__ . '/../init_session.php';
+if(!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header('Location: login');
+    exit;
+}
+
+
 $balance = (int) $_SESSION['user_balance'];
 
 $result       = null;

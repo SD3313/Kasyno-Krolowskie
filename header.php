@@ -15,18 +15,13 @@ $logged_in = isset($_SESSION['user_id']);
     <link rel="icon" type="image/png" href="photos/icona_korona.png">
     
 
-    <link rel="stylesheet" href="style.css?212332">
+    <link rel="stylesheet" href="style.css?1">
 </head>
 <body>
     <div class="container">
         <div class="top-bar">
             <a href="home" class="logo">
                 <img src="/kasyno/Kasyno-Krolowskie/photos/logo.svg" alt="Logo Kasyno Królewskie">
-            </a>
-            <a href="saldo" class="saldo-link">
-                <div>
-                    💰 <span><?= $balance ?></span> żetonów (saldo)
-                </div>
             </a>
 
             <?php if ($logged_in): ?>
