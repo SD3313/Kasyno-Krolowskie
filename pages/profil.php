@@ -1,12 +1,9 @@
 <?php
 if (!isset($_SESSION['logged_in']) || !$_SESSION['logged_in']) {
-    header('Location: login.php');
+    header('Location: login');
     exit;
 }
 
-$active = isset($_GET['section']) ? $_GET['section'] : 'profil';
-$allowed = ['profil', 'saldo', 'znajomi', 'historia'];
-if (!in_array($active, $allowed)) $active = 'profil';
 
 $user     = $_SESSION['user']         ?? 'Gracz';
 $role     = $_SESSION['role']         ?? 'gracz';
@@ -40,16 +37,16 @@ $initials = mb_substr($initials, 0, 2);
     </div>
 
     <nav class="sidebar-nav">
-        <a href="profil"   class="nav-item <?= $active==='profil'   ? 'active' : '' ?>">
+        <a href="profil"   class="nav-item active">
             <span class="icon">👤</span> Profil
         </a>
-        <a href="saldo"    class="nav-item <?= $active==='saldo'    ? 'active' : '' ?>">
+        <a href="saldo"    class="nav-item ">
             <span class="icon">💰</span> Saldo
         </a>
-        <a href="znajomi" class="nav-item <?= $active==='znajomi'  ? 'active' : '' ?>">
+        <a href="znajomi" class="nav-item ">
             <span class="icon">🤝</span> Znajomi
         </a>
-        <a href="historia" class="nav-item <?= $active==='historia' ? 'active' : '' ?>">
+        <a href="historia" class="nav-item ">
             <span class="icon">📋</span> Historia
         </a>
     </nav>
@@ -59,7 +56,7 @@ $initials = mb_substr($initials, 0, 2);
         <strong><?= number_format($balance, 0, ',', ' ') ?> żetonów</strong>
     </div>
 
-    <a href="index.php" class="sidebar-back">← Wróć do gier</a>
+    <a href="index" class="sidebar-back">← Wróć do gier</a>
 </div>
 
 <div class="profile-main">

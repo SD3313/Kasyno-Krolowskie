@@ -8,7 +8,8 @@ if(!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 $balance = (int) $_SESSION['user_balance'];
 $message = '';
 $error   = '';
-
+$game_name = 'Bomb Sweeper';
+$user_id  = $_SESSION['user_id'] ?? 0;
 
 if (isset($_POST['go_to_config'])) {
     unset($_SESSION['bs_game']);
@@ -30,9 +31,9 @@ $game = $_SESSION['bs_game'] ?? null;
 
 
 if (isset($_POST['new_game'])) {
-    $size  = max(3, min(8, (int) ($_SESSION['grid_size'] )));
+    $size  = max(3, min(8, (int) ($_SESSION['grid_size'] ?? 5)));
     $cells = $size * $size;
-    $bombs = max(1, min($cells - 1, (int) ($_SESSION['bombs'] )));
+    $bombs = max(1, min($cells - 1, (int) ($_SESSION['bombs'] ?? 3)));
     $bet   = (int) ($_POST['bet'] ?? 0);
 
     if ($bet < 1 || $bet > $balance) {
@@ -66,6 +67,15 @@ if (isset($_POST['reveal']) && $game && $game['status'] === 'active') {
             $game['revealed'][] = $cell;
             $game['status']     = 'lost';
             $message = 'Boom! Trafiłeś na bombę i straciłeś ' . $game['bet'] . ' żetonów.';
+            $lost = -$game['bet'];
+            $bet = $game['bet'];
+            $balance = (int) $_SESSION['user_balance'] - $bet;
+            $sql = "INSERT INTO game_history (user_id, game, bet, win, balance_after) VALUES ('$user_id', '$game_name', '$bet', '$lost', '$balance')";
+            try {
+                mysqli_query($conn, $sql);
+            } catch(mysqli_sql_exception $e) {
+                echo "<p style='color:red;'> Wystąpił błąd podczas zapisywania wyniku</p>";
+            }
         } else {
             $game['revealed'][] = $cell;
             $safe_total = $cells - $game['bombs'];
@@ -84,6 +94,15 @@ if (isset($_POST['reveal']) && $game && $game['status'] === 'active') {
                 $_SESSION['user_balance'] += $game['winnings'];
                 $balance = (int) $_SESSION['user_balance'];
                 $message = 'Brawo! Odkryłeś wszystkie bezpieczne pola i wygrałeś ' . $game['winnings'] . ' żetonów!';
+                $bet = $game['bet'];
+                $win = $game['winnings'];
+                $sql = "INSERT INTO game_history (user_id, game, bet, win, balance_after) VALUES ('$user_id', '$game_name', '$bet', '$win', '$balance')";
+                try {
+                    mysqli_query($conn, $sql);
+                } catch(mysqli_sql_exception $e) {
+                    echo "<p style='color:red;'> Wystąpił błąd podczas zapisywania wyniku</p>";
+                }
+
             }
         }
         $_SESSION['bs_game'] = $game;
@@ -97,8 +116,14 @@ if (isset($_POST['cashout']) && $game && $game['status'] === 'active' && count($
     $balance = (int) $_SESSION['user_balance'];
     $_SESSION['bs_game'] = $game;
     $message = 'Wypłaciłeś ' . $game['winnings'] . ' żetonów! (×' . number_format($game['multiplier'], 2) . ')';
-    header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
-    exit;
+    $bet = $game['bet'];
+    $win = $game['winnings'];
+    $sql = "INSERT INTO game_history (user_id, game, bet, win, balance_after) VALUES ('$user_id', '$game_name', '$bet', '$win', '$balance')";
+    try {
+        mysqli_query($conn, $sql);
+    } catch(mysqli_sql_exception $e) {
+        echo "<p style='color:red;'> Wystąpił błąd podczas zapisywania wyniku</p>";
+    }
 }
 
 // ── Odśwież zmienne ──────────────────────────────────────────────
@@ -106,8 +131,8 @@ $game    = $_SESSION['bs_game'] ?? null;
 $balance = (int) $_SESSION['user_balance'];
 
 $prefill_bet   = isset($_SESSION['quick_val'])  ? $_SESSION['quick_val']  : 50;
-$prefill_size  = $_SESSION['grid_size'] ? (int) $_SESSION['grid_size']  : (isset($game['size'] ) ? max(3, min(8, (int) $game['size'] )) : 5);
-$prefill_bombs = $_SESSION['bombs'] ? (int) $_SESSION['bombs'] : (isset($game['bombs']) ? (int) $game['bombs'] : 3);
+$prefill_size  = isset($_SESSION['grid_size']) ? (int) $_SESSION['grid_size']  : (isset($game['size'] ) ? max(3, min(8, (int) $game['size'] )) : 5);
+$prefill_bombs = isset($_SESSION['bombs']) ? (int) $_SESSION['bombs'] : (isset($game['bombs']) ? (int) $game['bombs'] : 3);
 
 function bs_calc_mult(int $cells, int $bombs, int $revealed): float {
     $safe = $cells - $bombs;

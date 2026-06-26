@@ -3151,3 +3151,405 @@ body {
     background-color: rgba(155, 54, 54, 0.1);
     transition: background-color 0.3s;
 }
+
+.historia-wrapper {
+    width: 100%;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: #e8f0fe;
+}
+
+.historia-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.historia-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #e8f0fe;
+    letter-spacing: .3px;
+}
+
+.historia-count {
+    font-size: .75rem;
+    color: #7a93b0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.historia-empty {
+    text-align: center;
+    padding: 52px 20px;
+    background: #1d2f47;
+    border: 1px solid #2a3f5a;
+    border-radius: 12px;
+    color: #7a93b0;
+}
+
+.historia-empty-icon {
+    font-size: 2.2rem;
+    margin-bottom: 10px;
+}
+
+.historia-empty p {
+    font-size: .9rem;
+    color: #a0b4c8;
+    margin-bottom: 4px;
+}
+
+.historia-empty small {
+    font-size: .78rem;
+}
+
+.historia-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* ── TILE ──────────────────────────────────── */
+.historia-tile {
+    width: 100%;
+    background: #1d2f47;
+    border: 1px solid #2a3f5a;
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-left-width: 4px;
+    transition: background .15s;
+}
+
+.historia-tile:hover {
+    background: #223448;
+}
+
+.historia-tile.tile-win {
+    border-left-color: #00e5a0;
+}
+
+.historia-tile.tile-lose {
+    border-left-color: #e05c5c;
+}
+
+/* Game name + date */
+.tile-game {
+    display: flex;
+    flex-direction: column;
+    min-width: 120px;
+    flex-shrink: 0;
+}
+
+.tile-game-name {
+    font-size: .9rem;
+    font-weight: 600;
+    color: #e8f0fe;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+}
+
+.tile-datetime {
+    display: flex;
+    gap: 6px;
+    font-size: .72rem;
+    color: #7a93b0;
+    margin-top: 3px;
+}
+
+.tile-time {
+    color: #556a80;
+}
+
+/* Stats row */
+.tile-stats {
+    flex: 1;
+    display: flex;
+    gap: 24px;
+    justify-content: flex-start;
+}
+
+.tile-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.tile-stat-label {
+    font-size: .67rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #7a93b0;
+}
+
+.tile-stat-val {
+    font-size: .88rem;
+    font-weight: 600;
+    color: #c9d8ea;
+}
+
+/* Result value coloring */
+.tile-result.tile-win {
+    color: #00e5a0;
+}
+
+.tile-result.tile-lose {
+    color: #e05c5c;
+}
+
+/* Win/lose badge */
+.tile-indicator {
+    font-size: .7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.tile-indicator.tile-win {
+    background: rgba(0, 229, 160, .13);
+    color: #00e5a0;
+}
+
+.tile-indicator.tile-lose {
+    background: rgba(224, 92, 92, .13);
+    color: #e05c5c;
+}
+
+@media (max-width: 540px) {
+    .historia-tile {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .tile-stats {
+        gap: 14px;
+        flex-wrap: wrap;
+    }
+
+    .tile-indicator {
+        align-self: flex-start;
+    }
+}
+
+.historia-wrapper {
+    width: 80%;
+    margin-left: 20px;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: #e8f0fe;
+}
+
+.historia-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.historia-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #e8f0fe;
+    letter-spacing: .3px;
+}
+
+.historia-count {
+    font-size: .75rem;
+    color: #7a93b0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.historia-empty {
+    text-align: center;
+    padding: 52px 20px;
+    background: #1d2f47;
+    border: 1px solid #2a3f5a;
+    border-radius: 12px;
+    color: #7a93b0;
+}
+
+.historia-empty-icon {
+    font-size: 2.2rem;
+    margin-bottom: 10px;
+}
+
+.historia-empty p {
+    font-size: .9rem;
+    color: #a0b4c8;
+    margin-bottom: 4px;
+}
+
+.historia-empty small {
+    font-size: .78rem;
+}
+
+.historia-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 552px;
+    overflow-y: auto;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: #2a3f5a transparent;
+}
+
+.historia-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.historia-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.historia-list::-webkit-scrollbar-thumb {
+    background: #2a3f5a;
+    border-radius: 4px;
+}
+
+.historia-list::-webkit-scrollbar-thumb:hover {
+    background: #3a5070;
+}
+
+/* ── TILE ──────────────────────────────────── */
+.historia-tile {
+    width: 100%;
+    background: #1d2f47;
+    border: 1px solid #2a3f5a;
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-left-width: 4px;
+    transition: background .15s;
+}
+
+.historia-tile:hover {
+    background: #223448;
+}
+
+.historia-tile.tile-win {
+    border-left-color: #00e5a0;
+}
+
+.historia-tile.tile-lose {
+    border-left-color: #e05c5c;
+}
+
+/* Game name + date */
+.tile-game {
+    display: flex;
+    flex-direction: column;
+    min-width: 120px;
+    flex-shrink: 0;
+}
+
+.tile-game-name {
+    font-size: .9rem;
+    font-weight: 600;
+    color: #e8f0fe;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+}
+
+.tile-datetime {
+    display: flex;
+    gap: 6px;
+    font-size: .72rem;
+    color: #7a93b0;
+    margin-top: 3px;
+}
+
+.tile-time {
+    color: #556a80;
+}
+
+/* Stats row */
+.tile-stats {
+    flex: 1;
+    display: flex;
+    gap: 24px;
+    justify-content: flex-start;
+}
+
+.tile-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.tile-stat-label {
+    font-size: .67rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #7a93b0;
+}
+
+.tile-stat-val {
+    font-size: .88rem;
+    text-align: right;
+    font-weight: 600;
+    color: #c9d8ea;
+}
+
+/* Result value coloring */
+.tile-result.tile-win {
+    color: #00e5a0;
+}
+
+.tile-result.tile-lose {
+    color: #e05c5c;
+}
+
+/* Win/lose badge */
+.tile-indicator {
+    font-size: .7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.tile-indicator.tile-win {
+    background: rgba(0, 229, 160, .13);
+    color: #00e5a0;
+}
+
+.tile-indicator.tile-lose {
+    background: rgba(224, 92, 92, .13);
+    color: #e05c5c;
+}
+
+@media (max-width: 540px) {
+    .historia-list {
+        max-height: 420px;
+    }
+
+    .historia-tile {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .tile-stats {
+        gap: 14px;
+        flex-wrap: wrap;
+    }
+
+    .tile-indicator {
+        align-self: flex-start;
+    }
+}

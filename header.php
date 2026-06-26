@@ -15,7 +15,7 @@ $logged_in = isset($_SESSION['user_id']);
     <link rel="icon" type="image/png" href="photos/icona_korona.png">
     
 
-    <link rel="stylesheet" href="style.css?1">
+    <link rel="stylesheet" href="style.css?121">
 </head>
 <body>
     <div class="container">

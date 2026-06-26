@@ -48,7 +48,7 @@
         <input type="email" id="email" name="email" required value=<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ' '; ?>>
         <br>
         <label for="uro">Data urodzenia:</label><br>
-        <input type="date" id="uro" name="uro" required placeholder=">18" min="18">
+        <input type="date" id="uro" name="uro" required placeholder=">18" min="18" value=<?php echo isset($_POST['uro']) ? htmlspecialchars($_POST['uro']) : ' '; ?>>
         <br>
         <label for="haslo">Hasło:</label><br>
         <input type="password" id="haslo" name="haslo" required>

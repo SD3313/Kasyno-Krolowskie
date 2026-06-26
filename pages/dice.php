@@ -6,7 +6,8 @@ if(!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 
 
 $balance = (int) $_SESSION['user_balance'];
-
+$game_name = 'Dice';
+$user_id  = $_SESSION['user_id'] ?? 0;
 $result    = null;
 $won       = null;
 $message   = '';
@@ -59,9 +60,23 @@ if (isset($_POST['play'])) {
             $gain = (int) floor($bet * ($multiplier - 1));
             $_SESSION['user_balance'] += $gain;
             $message = 'Wygrałeś ' . $gain . ' żetonów! (×' . $multiplier . ')';
+            $win = $gain;
+            $sql = "INSERT INTO game_history (user_id, game, bet, win, balance_after) VALUES ('$user_id', '$game_name', '$bet', '$win', '$balance')";
+            try {
+                mysqli_query($conn, $sql);
+            } catch(mysqli_sql_exception $e) {
+                echo "<p style='color:red;'> Wystąpił błąd podczas zapisywania wyniku</p>";
+            }
         } else {
             $_SESSION['user_balance'] -= $bet;
             $message = 'Przegrałeś ' . $bet . ' żetonów.';
+            $lose = -$bet;
+            $sql = "INSERT INTO game_history (user_id, game, bet, win, balance_after) VALUES ('$user_id', '$game_name', '$bet', '$lose', '$balance')";
+            try {
+                mysqli_query($conn, $sql);
+            } catch(mysqli_sql_exception $e) {
+                echo "<p style='color:red;'> Wystąpił błąd podczas zapisywania wyniku</p>";
+            }
         }
 
         $balance           = $_SESSION['user_balance'];
@@ -91,7 +106,7 @@ $display_win_pct = round($disp_prob * 100, 1);
 ?>
 <div class="sg">
 
-    <p class="sg__title">Slide</p>
+    <p class="sg__title">Dice</p>
     <p class="sg__balance">
         Saldo: <strong><?= (int) $balance ?> żetonów</strong>
     </p>
