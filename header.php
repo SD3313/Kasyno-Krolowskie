@@ -2,6 +2,15 @@
 require_once 'init_session.php';
 $balance = $_SESSION['user_balance'] ?? 0;
 $logged_in = isset($_SESSION['user_id']);
+
+$pic      = $_SESSION['profile_pic'] ?? '';
+$user     = $_SESSION['user']       ?? 'Gracz';
+
+
+$initials = '';
+$parts = explode(' ', $user);
+foreach ($parts as $p) $initials .= strtoupper(mb_substr($p, 0, 1));
+$initials = mb_substr($initials, 0, 2);
 ?>
 <!DOCTYPE html>
 <html lang="pl">
@@ -27,8 +36,14 @@ $logged_in = isset($_SESSION['user_id']);
             <?php if ($logged_in): ?>
                 <a href="profil" class="profil-link">    
                     <div class="profil" >
-                        <div class="avatar"></div>
-                        <div class="username"><?= htmlspecialchars($_SESSION['user'] ?? 'Użytkownik') ?></div>
+                        <div class="avatar-circle">
+            <?php if (isset($pic) && !empty($pic)): ?>
+                <img src="<?= htmlspecialchars($pic) ?>" alt="avatar">
+            <?php else: ?>
+                <?= htmlspecialchars($initials) ?>
+            <?php endif; ?>
+        </div>
+                        <div class="username"><?= htmlspecialchars($_SESSION['username'] ?? 'Użytkownik') ?></div>
                     </div>
                 </a>
             <?php else: ?>

@@ -1,6 +1,12 @@
 <div class="login-container">
     <h1> Logowanie </h1>
     <p>Witaj w Kasynie Królewskim! Zaloguj się, aby kontynuować.</p>
+    <?php
+    if (isset($_SESSION['login_message'])) {
+        echo "<p style='color:green;'>" . $_SESSION['login_message'] . "</p>";
+        unset($_SESSION['login_message']);
+    }
+    ?>
 <form action="login" method="post">
     <label for="email">Wpisz adres e-mail:</label><br>
     <input type="email" id="email" name="email" required value=<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ' '; ?>>
@@ -30,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_balance'] = (int) $row['balance'];
             $_SESSION['logged_in'] = true;
             $_SESSION['profile_pic'] = $row['profile_pic'];
+            $_SESSION['username'] = $row['username'];
             $_SESSION['email'] =$email;
 
             header("Location: home");

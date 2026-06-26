@@ -15,6 +15,7 @@ $role     = $_SESSION['role']         ?? 'gracz';
 $user_id  = $_SESSION['user_id']      ?? 0;
 $balance  = $_SESSION['user_balance'] ?? 0;
 $email    = $_SESSION['email']        ?? '';
+$username = $_SESSION['username']     ?? '';
 $pic      = $_SESSION['profile_pic']  ?? '';
 
 $initials = '';
@@ -58,7 +59,11 @@ $show_form = isset($_SESSION['show_form']) ? $_SESSION['show_form'] : false;
                 <?= htmlspecialchars($initials) ?>
             <?php endif; ?>
         </div>
-        <div class="sidebar-name"><?= htmlspecialchars($user) ?></div>
+        <?php if (isset($username) && !empty($username)): ?>
+            <div class="sidebar-name"><?= htmlspecialchars($username) ?></div>
+        <?php else: ?>
+            <div class="sidebar-name"><?= htmlspecialchars($user) ?></div>
+        <?php endif; ?>
         <div class="sidebar-role"><?= htmlspecialchars($role) ?></div>
     </div>
 
@@ -82,7 +87,7 @@ $show_form = isset($_SESSION['show_form']) ? $_SESSION['show_form'] : false;
         <strong><?= number_format($balance, 0, ',', ' ') ?> żetonów</strong>
     </div>
 
-    <a href="index" class="sidebar-back">← Wróć do gier</a>
+    <a href="home" class="sidebar-back">← Wróć do gier</a>
 </div>
     <div class="saldo-container">
         <h1>💰 Zarządzanie Saldem</h1>

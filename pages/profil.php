@@ -9,6 +9,7 @@ $user     = $_SESSION['user']         ?? 'Gracz';
 $role     = $_SESSION['role']         ?? 'gracz';
 $user_id  = $_SESSION['user_id']      ?? 0;
 $balance  = $_SESSION['user_balance'] ?? 0;
+$username = $_SESSION['username']     ?? '';
 $email    = $_SESSION['email']        ?? '';
 $pic      = $_SESSION['profile_pic']  ?? '';
 
@@ -32,7 +33,11 @@ $initials = mb_substr($initials, 0, 2);
                 <?= htmlspecialchars($initials) ?>
             <?php endif; ?>
         </div>
-        <div class="sidebar-name"><?= htmlspecialchars($user) ?></div>
+        <?php if (isset($username) && !empty($username)): ?>
+            <div class="sidebar-name"><?= htmlspecialchars($username) ?></div>
+        <?php else: ?>
+            <div class="sidebar-name"><?= htmlspecialchars($user) ?></div>
+        <?php endif; ?>
         <div class="sidebar-role"><?= htmlspecialchars($role) ?></div>
     </div>
 
@@ -56,7 +61,7 @@ $initials = mb_substr($initials, 0, 2);
         <strong><?= number_format($balance, 0, ',', ' ') ?> żetonów</strong>
     </div>
 
-    <a href="index" class="sidebar-back">← Wróć do gier</a>
+    <a href="home" class="sidebar-back">← Wróć do gier</a>
 </div>
 
 <div class="profile-main">
@@ -86,6 +91,10 @@ $initials = mb_substr($initials, 0, 2);
             <div class="field-row">
                 <div class="field-label">Imię i nazwisko</div>
                 <div class="field-value"><?= htmlspecialchars($user) ?></div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Nazwa użytkownika</div>
+                <div class="field-value"><?= htmlspecialchars($username) ?></div>
             </div>
             <div class="field-row">
                 <div class="field-label">E-mail</div>

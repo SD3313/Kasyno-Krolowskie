@@ -8,6 +8,7 @@
         $haslo = mysqli_real_escape_string($conn, $_POST['haslo']);
         $powtorz_haslo = mysqli_real_escape_string($conn, $_POST['powtorz_haslo']);
         $uro = mysqli_real_escape_string($conn, $_POST['uro']);
+        $username = mysqli_real_escape_string($conn, $_POST['username']);
 
         $birthDate = new DateTime($uro);
         $today = new DateTime();
@@ -20,11 +21,12 @@
             echo "<p style='color:red;'>Hasła nie są identyczne!</p>";
         } else {
             $hashed_password = password_hash($haslo, PASSWORD_DEFAULT);
-            $sql = "INSERT INTO users (first_name, last_name, email, pass, registration_date) VALUES ('$imie', '$nazwisko', '$email', '$hashed_password', NOW())";
+            $sql = "INSERT INTO users (first_name, last_name, username, email, pass, registration_date) VALUES ('$imie', '$nazwisko', '$username', '$email', '$hashed_password', NOW())";
             
             try {
                 mysqli_query($conn, $sql);
-                echo "<p style='color:green;'>Konto założone! Możesz się teraz zalogować.</p>";
+                $_SESSION['login_message'] = "Konto założone! Możesz się teraz zalogować.";
+                header('Location: login');
             } catch(mysqli_sql_exception $e) {
                 if ($e->getCode() == 1062) {
                     echo "<p style='color:red;'>Ten email jest już zajęty!</p>";
@@ -44,6 +46,9 @@
         <label for="Nazwisko">Nazwisko:</label><br>
         <input type="text" id="Nazwisko" name="Nazwisko" required value=<?php echo isset($_POST['Nazwisko']) ? htmlspecialchars($_POST['Nazwisko']) : ' '; ?>>
         <br>
+        <label for="username">Nazwa użytkownika:</label><br>
+        <input type="text" id="username" name="username" placeholder="opcjonalnie" value=<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ' '; ?>>
+        <br>    
         <label for="email">Email:</label><br>
         <input type="email" id="email" name="email" required value=<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ' '; ?>>
         <br>
