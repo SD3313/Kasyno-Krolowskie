@@ -17,6 +17,7 @@ $initials = '';
 $parts = explode(' ', $user);
 foreach ($parts as $p) $initials .= strtoupper(mb_substr($p, 0, 1));
 $initials = mb_substr($initials, 0, 2);
+
 ?>
 <div class="profile-container">
 <div class="sidebar">
@@ -84,7 +85,7 @@ $initials = mb_substr($initials, 0, 2);
                 <span class="val" style="font-size:1.1rem"><?= htmlspecialchars($role) ?></span>
             </div>
         </div>
-
+        
         <div class="card">
             <div class="card-title">Dane konta</div>
 
@@ -121,12 +122,28 @@ $initials = mb_substr($initials, 0, 2);
                 <div class="field-label">Status</div>
                 <div class="field-value"><span class="badge badge-green">Aktywny</span></div>
             </div>
+
+        <div style="display:flex">
+        <form action="upload_photo" method="POST" enctype="multipart/form-data" class="upload" >
+            <input type="file" id="file" name="photo" accept="image/*" style="display:none" onchange="this.form.submit()">
+            <button class="profile-change-btn" type="button" onclick="document.getElementById('file').click()">
+                Zmień zdjęcie profilowe
+            </button>
+        </form>
+
+        <form action="delete_photo" method="POST" class="upload">
+            <input type="text" id="id" name="id" value="<?php echo $_SESSION["user_id"]?>" style="display:none" >
+            <button class="profile-delete-btn" type="button" onclick="this.form.submit()">
+                Usuń zdjęcie profilowe
+            </button>
+        </form>
         </div>
         
-        <a  href="logout">
+        <a href="logout">
             <div class="logout-section">
                 <p>Wyloguj się</p>
             </div>
         </a>
     </div>
 </div>
+        </div>

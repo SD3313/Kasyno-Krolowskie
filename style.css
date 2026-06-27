@@ -3138,7 +3138,6 @@ body {
     border-radius: 12px;
     border: 1px solid #9b3636;
     box-shadow: 0 0 2px #9b3636;
-
 }
 
 .logout-section p {
@@ -3552,4 +3551,34 @@ body {
     .tile-indicator {
         align-self: flex-start;
     }
+}
+
+.profile-change-btn,
+.profile-delete-btn {
+    width: 80%;
+    padding: 10px;
+    text-align: center;
+    margin-top: 15px;
+    color: #3ddc97;
+    background-color: transparent;
+    border: #00e5a0 1px solid;
+    border-radius: 10px;
+    text-decoration: none;
+}
+
+.profile-delete-btn {
+    color: #9b3636;
+    border: #9b3636 1px solid;
+}
+
+
+.profile-change-btn:hover {
+    color: #3ddc97;
+    background-color: #01c78b63;
+    transition: all 0.3s;
+}
+
+.profile-delete-btn:hover {
+    background-color: rgba(155, 54, 54, 0.1);
+    transition: background-color 0.3s;
 }
