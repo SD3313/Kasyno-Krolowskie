@@ -4,34 +4,33 @@ if(!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     exit;
 }
 
-
-
 $balance = (int) $_SESSION['user_balance'];
+$user_id = $_SESSION['user_id'] ?? 0;
 
 /* ═══════════════════════════════════════════════════
    TABLICA MNOŻNIKÓW — minimum 0.25×, ~50% < 1×
    ═══════════════════════════════════════════════════ */
 $MULTIPLIERS = [
-    [0.25,  1400],  // 0.25×  — 14.00%
-    [0.33,  1100],  // 0.33×  — 11.00%
-    [0.50,  1100],  // 0.50×  — 11.00%
-    [0.66,   700],  // 0.66×  —  7.00%
-    [0.75,   700],  // 0.75×  —  7.00%  łącznie <1×: ~50%
-    [1.00,   900],  // 1×     —  9.00%
-    [1.25,   550],  // 1.25×  —  5.50%
-    [1.50,   500],  // 1.50×  —  5.00%
-    [2.00,   500],  // 2×     —  5.00%
-    [2.50,   300],  // 2.50×  —  3.00%
-    [3.00,   250],  // 3×     —  2.50%
-    [4.00,   180],  // 4×     —  1.80%
-    [5.00,   150],  // 5×     —  1.50%
-    [7.50,    90],  // 7.50×  —  0.90%
-    [10.00,   60],  // 10×    —  0.60%
-    [15.00,   40],  // 15×    —  0.40%
-    [25.00,   25],  // 25×    —  0.25%
-    [50.00,   10],  // 50×    —  0.10%
-    [100.00,   4],  // 100×   —  0.04%
-    [250.00,   1],  // 250×   —  0.01%
+    [0.25,  1400],
+    [0.33,  1100],
+    [0.50,  1100],
+    [0.66,   700],
+    [0.75,   700],
+    [1.00,   900],
+    [1.25,   550],
+    [1.50,   500],
+    [2.00,   500],
+    [2.50,   300],
+    [3.00,   250],
+    [4.00,   180],
+    [5.00,   150],
+    [7.50,    90],
+    [10.00,   60],
+    [15.00,   40],
+    [25.00,   25],
+    [50.00,   10],
+    [100.00,   4],
+    [250.00,   1],
 ];
 $TOTAL_WEIGHT = array_sum(array_column($MULTIPLIERS, 1));
 
@@ -88,10 +87,10 @@ if (isset($_POST['reset'])) {
    ═══════════════════════════════════════════════════ */
 $played         = false;
 $error          = '';
-$player_spins   = [];   // [gracz][spin] = ['mult'=>float, 'val'=>int]
-$player_total   = [];   // suma wylosowanych wartości każdego gracza
-$player_wins    = [];   // ile razy wygrał pojedynczy spin (tryb winscount)
-$tiebreak_spins = [];   // dogrywkowe spiny [gracz] = ['mult'=>, 'val'=>]
+$player_spins   = [];
+$player_total   = [];
+$player_wins    = [];
+$tiebreak_spins = [];
 $winner_idx     = null;
 $prize          = 0;
 $total_cost     = 0;
@@ -111,11 +110,9 @@ if (isset($_POST['play'])) {
         if ($total_cost > $balance) {
             $error = 'Niewystarczające saldo. Potrzebujesz ' . $total_cost . ' żetonów.';
         } else {
-            // Odejmij koszt gracza
             $_SESSION['user_balance'] -= $total_cost;
             $balance -= $total_cost;
 
-            // Generuj spiny dla wszystkich graczy
             for ($p = 0; $p < $num_players; $p++) {
                 $player_spins[$p] = [];
                 $player_total[$p] = 0;
@@ -128,7 +125,6 @@ if (isset($_POST['play'])) {
                 }
             }
 
-            // Wyznacz zwycięzcę każdego spinu (tryb winscount)
             for ($s = 0; $s < $spin_count; $s++) {
                 $best_p   = 0;
                 $best_val = $player_spins[0][$s]['val'];
@@ -141,13 +137,12 @@ if (isset($_POST['play'])) {
                 $player_wins[$best_p]++;
             }
 
-            // Wyznacz zwycięzcę wg trybu
             $determine_winner = function() use ($mode, $num_players, $player_total, $player_wins, $player_spins, $spin_count): ?int {
                 switch ($mode) {
                     case 'normal':
                         $max = max($player_total);
                         $candidates = array_keys(array_filter($player_total, fn($v) => $v === $max));
-                        return count($candidates) === 1 ? $candidates[0] : null; // null = remis
+                        return count($candidates) === 1 ? $candidates[0] : null;
                     case 'underdog':
                         $min = min($player_total);
                         $candidates = array_keys(array_filter($player_total, fn($v) => $v === $min));
@@ -170,7 +165,6 @@ if (isset($_POST['play'])) {
 
             $winner_idx = $determine_winner();
 
-            // REMIS — dogrywka spin po spinie (wyniki NIE wliczają się do sumy)
             $tiebreak_rounds = 0;
             while ($winner_idx === null && $tiebreak_rounds < 20) {
                 $tiebreak_rounds++;
@@ -185,11 +179,8 @@ if (isset($_POST['play'])) {
                 $candidates = array_keys(array_filter($tb_vals, fn($v) => $v === $max));
                 if (count($candidates) === 1) $winner_idx = $candidates[0];
             }
-            // Awaryjne — jeśli 20 dogrywek bez rozstrzygnięcia, wygrywa gracz 0
             if ($winner_idx === null) $winner_idx = 0;
 
-            // NAGRODA = suma wylosowanych wartości WSZYSTKICH graczy łącznie
-            // (tj. gracz dostaje to co wszyscy razem wylosowali)
             $prize = 0;
             for ($p = 0; $p < $num_players; $p++) {
                 $prize += $player_total[$p];
@@ -198,6 +189,15 @@ if (isset($_POST['play'])) {
             if ($winner_idx === 0) {
                 $_SESSION['user_balance'] += $prize;
                 $balance += $prize;
+                $win = $prize - $total_cost;
+            } else {
+                $win = -$total_cost;
+            }
+
+            $balanceAfter = $_SESSION['user_balance'];
+            $sql = "INSERT INTO game_history (user_id, game, bet, win, balance_after) VALUES ('$user_id', 'Case Battle', '$total_cost', '$win', '$balanceAfter')";
+            if (!mysqli_query($conn, $sql)) {
+                error_log('Błąd zapisu historii Case Battle: ' . mysqli_error($conn));
             }
 
             $played          = true;
@@ -210,8 +210,7 @@ if (isset($_POST['play'])) {
 }
 
 /* ═══════════════════════════════════════════════════
-   BUDOWANIE TAŚM dla animacji
-   Schemat: [BUFOR_GÓRA 10 pól] + [18 losowych] + [WYNIK] + [BUFOR_DÓŁ 5 pól]
+   BUDOWANIE TAŚM
    ═══════════════════════════════════════════════════ */
 $TAPE_PRE    = 18;
 $TAPE_BOTTOM = 5;
@@ -240,7 +239,6 @@ if ($played) {
             );
         }
     }
-    // Taśmy dogrywkowe
     foreach ($tiebreak_spins as $round => $players_tb) {
         foreach ($players_tb as $p => $tb) {
             $tiebreak_tapes[$round][$p] = buildTape(
@@ -250,6 +248,52 @@ if ($played) {
         }
     }
 }
+
+/* ═══════════════════════════════════════════════════
+   PRZYGOTOWANIE DANYCH DLA JS (czyste PHP → JSON)
+   ═══════════════════════════════════════════════════ */
+$js_data = [
+    'played'       => $played,
+    'numPlayers'   => $prefill_players,
+    'numSpins'     => $prefill_count,
+    'spinPrice'    => $prefill_price,
+    'winnerIdx'    => $winner_idx,
+    'mode'         => $prefill_mode,
+    'balance'      => $balance,
+    'playerTotals' => $played ? array_values($player_total) : [],
+    'playerWins'   => $played ? array_values($player_wins)  : [],
+    'spinResults'  => $played
+        ? array_map(
+            fn($p) => array_map(fn($s) => $player_spins[$p][$s], range(0, $prefill_count - 1)),
+            range(0, $prefill_players - 1)
+          )
+        : [],
+    'winnerPos'    => $played
+        ? array_map(
+            fn($p) => array_map(fn($s) => $tapes_data[$p][$s]['winner_pos'] ?? 0, range(0, $prefill_count - 1)),
+            range(0, $prefill_players - 1)
+          )
+        : [],
+    'tbRounds'     => $played ? array_values(array_keys($tiebreak_spins)) : [],
+    'tbPos'        => ($played && count($tiebreak_spins) > 0)
+        ? array_values(array_map(
+            fn($round) => array_map(fn($p) => $tiebreak_tapes[$round][$p]['winner_pos'] ?? 0, range(0, $prefill_players - 1)),
+            array_keys($tiebreak_spins)
+          ))
+        : [],
+    'tbVals'       => ($played && count($tiebreak_spins) > 0)
+        ? array_values(array_map(
+            fn($round) => array_map(fn($p) => $tiebreak_spins[$round][$p]['val'], range(0, $prefill_players - 1)),
+            array_keys($tiebreak_spins)
+          ))
+        : [],
+    'tapesData'    => $played
+        ? array_map(
+            fn($p) => array_map(fn($s) => $tapes_data[$p][$s], range(0, $prefill_count - 1)),
+            range(0, $prefill_players - 1)
+          )
+        : [],
+];
 
 /* Kolory komórek */
 function multColor(float $m): string {
@@ -268,159 +312,8 @@ function multTextColor(float $m): string {
     return '#fca5a5';
 }
 ?>
-<!-- CASE BATTLE — fragment do osadzenia; <style> można przenieść do .css -->
+<!-- CASE BATTLE -->
 
-<style>
-/* ════════ PRZYCISKI OPCJI ════════ */
-.cb-config { display:grid; gap:14px; margin-bottom:16px; }
-.cb-config-row { display:flex; flex-direction:column; gap:6px; }
-.cb-options { display:flex; flex-wrap:wrap; gap:8px; }
-.cb-opt-btn {
-    padding:8px 14px; border-radius:7px; border:2px solid #444;
-    background:#2a2a2a; color:#ccc; font-size:.85rem; font-weight:600;
-    cursor:pointer; transition:border-color .15s, background .15s, color .15s;
-}
-.cb-opt-btn:hover  { background:#333; border-color:#666; color:#fff; }
-.cb-opt-btn.cb-active {
-    border-color:var(--accent-color,#c9a84c);
-    background:#3a2f10; color:var(--accent-color,#c9a84c);
-}
-.cb-mode-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-.cb-mode-btn {
-    padding:10px; border-radius:8px; border:2px solid #444;
-    background:#2a2a2a; color:#ccc; font-size:.82rem; font-weight:600;
-    cursor:pointer; text-align:left; line-height:1.3;
-    transition:border-color .15s, background .15s, color .15s;
-}
-.cb-mode-btn:hover { background:#333; border-color:#666; }
-.cb-mode-btn.cb-active {
-    border-color:var(--accent-color,#c9a84c);
-    background:#3a2f10; color:#fff;
-}
-.cb-mode-btn small { display:block; font-weight:400; opacity:.6; font-size:.73rem; margin-top:3px; }
-
-.cb-cost-bar {
-    background:#1e1e1e; border:1px solid #3a3a3a; border-radius:8px;
-    padding:10px 14px; font-size:.9rem; color:#ccc;
-    display:flex; justify-content:space-between; align-items:center;
-    flex-wrap:wrap; gap:6px;
-}
-.cb-cost-bar strong { color:var(--accent-color,#c9a84c); font-size:1.05rem; }
-
-/* ════════ ARENA ════════ */
-.cb-arena {
-    display:flex; gap:10px; margin:18px 0;
-    align-items:flex-start; overflow-x:auto;
-}
-.cb-player-col {
-    flex:1; min-width:0; display:flex;
-    flex-direction:column; gap:8px;
-}
-.cb-player-label {
-    text-align:center; font-size:.78rem; font-weight:700;
-    color:#777; text-transform:uppercase; letter-spacing:.06em;
-}
-.cb-player-label--you { color:var(--accent-color,#c9a84c); }
-
-/* Pasek spinu */
-.cb-spin-wrap { position:relative; padding-top:22px; }
-.cb-spin-arrow {
-    position:absolute; top:0; left:50%; transform:translateX(-50%);
-    font-size:16px; color:var(--accent-color,#c9a84c); z-index:20;
-    filter:drop-shadow(0 0 3px var(--accent-color,#c9a84c));
-}
-.cb-spin-outer {
-    width:100%; height:200px; overflow:hidden;
-    border-radius:8px; border:2px solid var(--border-color,#3a3a2a);
-    background:#0d0d0d; position:relative;
-    box-shadow:0 4px 16px rgba(0,0,0,.6) inset;
-}
-/* Złota linia środkowa */
-.cb-spin-outer::after {
-    content:''; position:absolute; left:0; right:0;
-    top:50%; transform:translateY(-50%);
-    height:3px; background:var(--accent-color,#c9a84c);
-    box-shadow:0 0 10px var(--accent-color,#c9a84c), 0 0 20px rgba(201,168,76,.3);
-    z-index:9; pointer-events:none;
-}
-/* Zaciemnienie góry/dołu */
-.cb-spin-outer::before {
-    content:''; position:absolute; inset:0; z-index:8;
-    background:linear-gradient(to bottom,rgba(0,0,0,.65) 0%,transparent 28%,transparent 72%,rgba(0,0,0,.65) 100%);
-    pointer-events:none; border-radius:6px;
-}
-.cb-reel { display:flex; flex-direction:column; will-change:transform; }
-.cb-cell {
-    width:100%; height:50px; flex-shrink:0;
-    display:flex; flex-direction:column;
-    align-items:center; justify-content:center;
-    border-bottom:1px solid rgba(255,255,255,.06);
-    font-weight:800; line-height:1.1; user-select:none;
-}
-.cb-cell-mult { font-size:.95rem; }
-.cb-cell-val  { font-size:.7rem; opacity:.7; font-weight:500; }
-.cb-cell--winner {
-    outline:3px solid var(--accent-color,#c9a84c); outline-offset:-3px;
-    animation:cb-pulse .65s ease-in-out 4; position:relative; z-index:5;
-}
-@keyframes cb-pulse {
-    0%,100% { filter:brightness(1); }
-    50%      { filter:brightness(1.75); }
-}
-
-.cb-spin-result {
-    text-align:center; font-size:.82rem; font-weight:700;
-    margin-top:4px; min-height:18px; color:#888; transition:color .3s;
-}
-.cb-spin-label {
-    text-align:center; font-size:.7rem; color:#555;
-    font-weight:600; letter-spacing:.04em; margin-top:2px;
-}
-
-/* Suma gracza */
-.cb-player-total {
-    text-align:center; font-size:.95rem; font-weight:700;
-    padding:6px 4px; border-radius:6px; background:#1a1a1a;
-    border:1px solid #333; color:#ccc; min-height:34px;
-    display:flex; align-items:center; justify-content:center;
-    gap:6px; transition:all .4s;
-}
-.cb-player-total--winner {
-    border-color:var(--accent-color,#c9a84c);
-    color:var(--accent-color,#c9a84c); background:#2a200a;
-    box-shadow:0 0 14px rgba(201,168,76,.25);
-}
-.cb-player-total--loser { opacity:.45; }
-
-/* Dogrywka */
-.cb-tiebreak-section {
-    margin:10px 0; padding:10px;
-    border:1px solid #4a3a10; border-radius:8px; background:#1e1a0a;
-}
-.cb-tiebreak-title {
-    text-align:center; font-size:.8rem; color:#c9a84c; font-weight:700;
-    margin-bottom:8px; text-transform:uppercase; letter-spacing:.06em;
-}
-.cb-tiebreak-arena { display:flex; gap:8px; }
-.cb-tiebreak-col { flex:1; min-width:0; }
-
-/* Baner wyniku */
-.cb-result-banner {
-    text-align:center; padding:12px; border-radius:10px;
-    font-size:1.1rem; font-weight:700; margin:10px 0;
-    display:none; opacity:0; transition:opacity .5s;
-}
-.cb-result-banner.cb-show { display:block; }
-.cb-result-banner--win  { background:#1a3a1a; border:2px solid #27ae60; color:#2ecc71; }
-.cb-result-banner--lose { background:#3a1a1a; border:2px solid #c0392b; color:#e74c3c; }
-
-/* Etykieta rundy spinu */
-.cb-round-label {
-    text-align:center; font-size:.68rem; color:#555;
-    font-weight:700; letter-spacing:.05em;
-    text-transform:uppercase; margin-bottom:2px;
-}
-</style>
 
 <div class="coin-game">
 
@@ -440,7 +333,7 @@ function multTextColor(float $m): string {
                 <div class="cb-options" id="cb-prices">
                     <?php foreach ($SPIN_PRICES as $p): ?>
                     <button type="button" class="cb-opt-btn cb-price-btn<?= $p===$prefill_price?' cb-active':'' ?>"
-                            data-val="<?= $p ?>"><?= $p ?> 🪙</button>
+                            data-val="<?= $p ?>"><?= $p ?> </button>
                     <?php endforeach; ?>
                 </div>
                 <input type="hidden" name="spin_price" id="cb-hidden-price" value="<?= $prefill_price ?>">
@@ -490,14 +383,14 @@ function multTextColor(float $m): string {
                 <span>Twój koszt wejścia:</span>
                 <strong id="cb-cost-display"><?= $prefill_price * $prefill_count ?> żetonów</strong>
                 <span style="opacity:.55;font-size:.8rem;">
-                    (pula: <span id="cb-pot-display"><?= $prefill_price * $prefill_count * $prefill_players ?></span> 🪙)
+                    (pula: <span id="cb-pot-display"><?= $prefill_price * $prefill_count * $prefill_players ?></span> )
                 </span>
             </div>
         </div>
 
         <hr class="coin-game__divider">
 
-        <!-- ══ ARENA GŁÓWNYCH SPINÓW ══ -->
+       
         <div class="cb-arena" id="cb-arena">
             <?php for ($p = 0; $p < $prefill_players; $p++):
                 $is_you = ($p === 0);
@@ -530,7 +423,6 @@ function multTextColor(float $m): string {
                                            . '</div>';
                                     }
                                 } else {
-                                    // Placeholder
                                     foreach ([0.25,0.5,1.0,0.33,2.0,0.75,1.5,0.25,3.0,0.5,1.0,0.33,2.0,0.75,1.5] as $mult) {
                                         $val = (int) round($mult * $prefill_price);
                                         echo '<div class="cb-cell" style="background:' . multColor($mult) . ';color:' . multTextColor($mult) . ';">'
@@ -552,7 +444,7 @@ function multTextColor(float $m): string {
             <?php endfor; ?>
         </div>
 
-        <!-- ══ SEKCJA DOGRYWKI (ukryta, pokazuje się jeśli był remis) ══ -->
+        <!-- ══ SEKCJA DOGRYWKI ══ -->
         <?php if ($played && count($tiebreak_spins) > 0): ?>
         <div class="cb-tiebreak-section" id="cb-tiebreak-section" style="display:none;">
             <div class="cb-tiebreak-title">🔁 Dogrywka</div>
@@ -594,7 +486,7 @@ function multTextColor(float $m): string {
         </div>
         <?php endif; ?>
 
-        <!-- Baner wyniku (ukryty do końca animacji) -->
+        <!-- Baner wyniku -->
         <div class="cb-result-banner<?= $played ? (' cb-show ' . ($winner_idx===0 ? 'cb-result-banner--win' : 'cb-result-banner--lose')) : '' ?>"
              id="cb-banner">
             <?php if ($played): ?>
@@ -623,46 +515,36 @@ function multTextColor(float $m): string {
     <a href="home" class="back-btn">← Wróć do gier</a>
 </div>
 
+<!-- ═══════════════════════════════════════════════════
+     DANE GRY — generowane przez PHP, odczytywane przez JS
+     ═══════════════════════════════════════════════════ -->
+<script id="cb-game-data" type="application/json">
+<?= json_encode($js_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>
+</script>
+
 <script>
 (function () {
 
-    const PLAYED      = <?= $played ? 'true' : 'false' ?>;
-    const NUM_PLAYERS = <?= (int)$prefill_players ?>;
-    const NUM_SPINS   = <?= (int)$prefill_count ?>;
-    const SPIN_PRICE  = <?= (int)$prefill_price ?>;
-    const WINNER_IDX  = <?= $winner_idx !== null ? (int)$winner_idx : 'null' ?>;
+    /* ── Odczyt danych z PHP ── */
+    const D           = JSON.parse(document.getElementById('cb-game-data').textContent);
+    const PLAYED      = D.played;
+    const NUM_PLAYERS = D.numPlayers;
+    const NUM_SPINS   = D.numSpins;
+    const SPIN_PRICE  = D.spinPrice;
+    const WINNER_IDX  = D.winnerIdx;
+    const MODE        = D.mode;
+    const WINNER_POS  = D.winnerPos;
+    const TB_ROUNDS   = D.tbRounds;
+    const TB_POS      = D.tbPos;
+    const TB_VALS     = D.tbVals;
+    const PLAYER_TOTALS = D.playerTotals;
+    const PLAYER_WINS   = D.playerWins;
+    const SPIN_RESULTS  = D.spinResults;
 
-    // Pozycje wyników w taśmach
-    const WINNER_POS = <?= $played ? json_encode(array_map(function($p) use ($prefill_count, $tapes_data) {
-        return array_map(fn($s) => $tapes_data[$p][$s]['winner_pos'] ?? 0, range(0, $prefill_count-1));
-    }, range(0, $prefill_players-1))) : '[]' ?>;
-
-    // Dane dogrywki
-    const TB_ROUNDS = <?= json_encode(array_keys($tiebreak_spins)) ?>;
-    const TB_POS    = <?= $played && count($tiebreak_spins) > 0 ? json_encode(
-        array_map(function($round) use ($prefill_players, $tiebreak_tapes) {
-            return array_map(fn($p) => $tiebreak_tapes[$round][$p]['winner_pos'] ?? 0, range(0, $prefill_players-1));
-        }, array_keys($tiebreak_spins))
-    ) : '{}' ?>;
-    const TB_VALS = <?= $played && count($tiebreak_spins) > 0 ? json_encode(
-        array_map(function($round) use ($prefill_players, $tiebreak_spins) {
-            return array_map(fn($p) => $tiebreak_spins[$round][$p]['val'], range(0, $prefill_players-1));
-        }, array_keys($tiebreak_spins))
-    ) : '{}' ?>;
-
-    // Sumy graczy
-    const PLAYER_TOTALS = <?= $played ? json_encode(array_values($player_total)) : '[]' ?>;
-    const PLAYER_WINS   = <?= $played ? json_encode(array_values($player_wins))  : '[]' ?>;
-    const MODE          = <?= json_encode($prefill_mode) ?>;
-    const SPIN_RESULTS  = <?= $played ? json_encode(array_map(fn($p) =>
-        array_map(fn($s) => $player_spins[$p][$s], range(0, $prefill_count-1)),
-        range(0, $prefill_players-1)
-    )) : '[]' ?>;
-
-    const CELL_H  = 50;
-    const OUTER_H = 200;
-    const CENTER  = Math.floor(OUTER_H / 2) - Math.floor(CELL_H / 2);
-    const ANIM_DURATION = 5500; // ms
+    const CELL_H        = 50;
+    const OUTER_H       = 200;
+    const CENTER        = Math.floor(OUTER_H / 2) - Math.floor(CELL_H / 2);
+    const ANIM_DURATION = 5500;
 
     /* ── Konfiguracja przycisków ── */
     function bindGroup(selector, hiddenId, onChange) {
@@ -705,7 +587,7 @@ function multTextColor(float $m): string {
             const targetY = -(winPos * CELL_H) + CENTER;
             reel.style.transition = 'none';
             reel.style.transform  = 'translateY(0)';
-            void reel.offsetWidth; // reflow
+            void reel.offsetWidth;
             reel.style.transition = `transform ${ANIM_DURATION}ms cubic-bezier(0.05,0.0,0.15,1.0)`;
             reel.style.transform  = `translateY(${targetY}px)`;
             reel.addEventListener('transitionend', function onEnd() {
@@ -715,18 +597,16 @@ function multTextColor(float $m): string {
         });
     }
 
-    /* ── Sekwencja: spiny rundami (runda 1 wszyscy, runda 2 wszyscy...) ── */
+    /* ── Sekwencja: spiny rundami ── */
     async function runAllSpins() {
 
         for (let s = 0; s < NUM_SPINS; s++) {
-            // Uruchom wszystkich graczy równolegle w tej rundzie
             const promises = [];
             for (let p = 0; p < NUM_PLAYERS; p++) {
                 promises.push(animateReel(`cb-reel-${p}-${s}`, WINNER_POS[p][s]));
             }
             await Promise.all(promises);
 
-            // Podświetl zwycięzcę tej rundy i pokaż wartość pod paskiem
             for (let p = 0; p < NUM_PLAYERS; p++) {
                 const wCell = document.getElementById(`cb-winner-${p}-${s}`);
                 if (wCell) wCell.classList.add('cb-cell--winner');
@@ -739,11 +619,10 @@ function multTextColor(float $m): string {
                 }
             }
 
-            // Krótka pauza między rundami
             if (s < NUM_SPINS - 1) await sleep(600);
         }
 
-        // Pokaż sumy
+        /* Sumy graczy */
         for (let p = 0; p < NUM_PLAYERS; p++) {
             const totalEl = document.getElementById(`cb-total-${p}`);
             if (!totalEl) continue;
@@ -756,7 +635,7 @@ function multTextColor(float $m): string {
 
         await sleep(400);
 
-        // Dogrywka (jeśli była)
+        /* Dogrywka */
         if (TB_ROUNDS.length > 0) {
             const tbSection = document.getElementById('cb-tiebreak-section');
             if (tbSection) tbSection.style.display = 'block';
@@ -769,7 +648,6 @@ function multTextColor(float $m): string {
                 }
                 await Promise.all(tbPromises);
 
-                // Podświetl
                 for (let p = 0; p < NUM_PLAYERS; p++) {
                     const tw = document.getElementById(`cb-tbwinner-${round}-${p}`);
                     if (tw) tw.classList.add('cb-cell--winner');
@@ -779,7 +657,7 @@ function multTextColor(float $m): string {
             await sleep(400);
         }
 
-        // Podświetl zwycięzcę i przegranego
+        /* Podświetl zwycięzcę i przegranego */
         for (let p = 0; p < NUM_PLAYERS; p++) {
             const totalEl = document.getElementById(`cb-total-${p}`);
             if (!totalEl) continue;
@@ -790,7 +668,7 @@ function multTextColor(float $m): string {
             }
         }
 
-        // Pokaż baner
+        /* Pokaż baner */
         if (banner) {
             banner.style.display = 'block';
             await sleep(50);
@@ -798,9 +676,8 @@ function multTextColor(float $m): string {
             banner.style.opacity    = '1';
         }
 
-        // Zaktualizuj saldo w headerze
-        const balance = <?= (int) $balance ?>;
-        if (typeof updateHeaderBalance === 'function') updateHeaderBalance(balance);
+        /* Zaktualizuj saldo w headerze */
+        if (typeof updateHeaderBalance === 'function') updateHeaderBalance(D.balance);
     }
 
     function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }

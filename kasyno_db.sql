@@ -68,13 +68,37 @@ CREATE TABLE `users` (
   `user_id` int(10) UNSIGNED NOT NULL,
   `first_name` varchar(100) NOT NULL,
   `last_name` varchar(100) NOT NULL,
-  `username` varchar(255) NOT NULL,
+  `username` varchar(255) NULL DEFAULT NULL,
   `email` varchar(255) NOT NULL,
   `pass` varchar(255) NOT NULL,
   `role` varchar(50) NOT NULL DEFAULT 'user',
   `balance` int(11) NOT NULL DEFAULT 1000,
   `registration_date` datetime NOT NULL DEFAULT current_timestamp(),
   `profile_pic` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Struktura tabeli dla tabeli `friend_requests`
+--
+
+CREATE TABLE `friend_requests` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `from_user_id` int(10) UNSIGNED NOT NULL,
+  `to_user_id` int(10) UNSIGNED NOT NULL,
+  `status` enum('pending','accepted','rejected') NOT NULL DEFAULT 'pending',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `responded_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Struktura tabeli dla tabeli `friendships`
+--
+
+CREATE TABLE `friendships` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `user_one` int(10) UNSIGNED NOT NULL,
+  `user_two` int(10) UNSIGNED NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -107,6 +131,24 @@ ALTER TABLE `users`
   ADD UNIQUE KEY `email` (`email`);
 
 --
+-- Indeksy dla tabeli `friend_requests`
+--
+ALTER TABLE `friend_requests`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_request` (`from_user_id`,`to_user_id`),
+  ADD KEY `idx_friend_requests_from` (`from_user_id`),
+  ADD KEY `idx_friend_requests_to` (`to_user_id`);
+
+--
+-- Indeksy dla tabeli `friendships`
+--
+ALTER TABLE `friendships`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_friendship` (`user_one`,`user_two`),
+  ADD KEY `idx_friendship_one` (`user_one`),
+  ADD KEY `idx_friendship_two` (`user_two`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -123,6 +165,18 @@ ALTER TABLE `users`
   MODIFY `user_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
+-- AUTO_INCREMENT for table `friend_requests`
+--
+ALTER TABLE `friend_requests`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `friendships`
+--
+ALTER TABLE `friendships`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- Constraints for dumped tables
 --
 
@@ -131,6 +185,20 @@ ALTER TABLE `users`
 --
 ALTER TABLE `game_history`
   ADD CONSTRAINT `history_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
+
+--
+-- Constraints for table `friend_requests`
+--
+ALTER TABLE `friend_requests`
+  ADD CONSTRAINT `friend_requests_from_user` FOREIGN KEY (`from_user_id`) REFERENCES `users` (`user_id`),
+  ADD CONSTRAINT `friend_requests_to_user` FOREIGN KEY (`to_user_id`) REFERENCES `users` (`user_id`);
+
+--
+-- Constraints for table `friendships`
+--
+ALTER TABLE `friendships`
+  ADD CONSTRAINT `friendship_user_one` FOREIGN KEY (`user_one`) REFERENCES `users` (`user_id`),
+  ADD CONSTRAINT `friendship_user_two` FOREIGN KEY (`user_two`) REFERENCES `users` (`user_id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

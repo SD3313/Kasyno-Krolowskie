@@ -39,7 +39,6 @@ $initials = mb_substr($initials, 0, 2);
         <?php else: ?>
             <div class="sidebar-name"><?= htmlspecialchars($user) ?></div>
         <?php endif; ?>
-        <div class="sidebar-role"><?= htmlspecialchars($role) ?></div>
     </div>
 
     <nav class="sidebar-nav">
@@ -79,12 +78,8 @@ $initials = mb_substr($initials, 0, 2);
     <div class="stat-card accent-green">
         <small>ID gracza</small>
         <span class="val">#<?= (int)$user_id ?></span>
-            </div>
-            <div class="stat-card">
-                <small>Rola</small>
-                <span class="val" style="font-size:1.1rem"><?= htmlspecialchars($role) ?></span>
-            </div>
-        </div>
+    </div>
+</div>
         
         <div class="card">
             <div class="card-title">Dane konta</div>
@@ -104,19 +99,6 @@ $initials = mb_substr($initials, 0, 2);
             <div class="field-row">
                 <div class="field-label">ID użytkownika</div>
                 <div class="field-value">#<?= (int)$user_id ?></div>
-            </div>
-            <div class="field-row">
-                <div class="field-label">Rola</div>
-                <div class="field-value">
-                    <?php
-                    $roleClass = match(strtolower($role)) {
-                        'admin'  => 'badge-gold',
-                        'vip'    => 'badge-blue',
-                        default  => 'badge-green',
-                    };
-                    ?>
-                    <span class="badge <?= $roleClass ?>"><?= htmlspecialchars($role) ?></span>
-                </div>
             </div>
             <div class="field-row">
                 <div class="field-label">Status</div>

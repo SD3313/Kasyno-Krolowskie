@@ -4,8 +4,12 @@ if(!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     exit;
 }
 
+require_once __DIR__ . '/../db_connect.php';
 
+// Saldo bieżące
 $balance = (int) $_SESSION['user_balance'];
+$balance_before = $balance; // saldo przed zakładem
+$user_id = $_SESSION['user_id'] ?? 0;
 
 $result       = null;
 $won          = null;
@@ -19,15 +23,34 @@ $payout       = 0;
 if (isset($_POST['quick_bet'])) {
     $fraction  = (float) $_POST['quick_bet'];
     $quick_val = max(1, (int) floor($balance * $fraction));
+    // Parsuj typ zakładu z radio
+    $qt = ''; $qv = '';
+    if (isset($_POST['bet_type_val']) && str_contains($_POST['bet_type_val'], '|')) {
+        [$qt, $qv] = explode('|', $_POST['bet_type_val'], 2);
+    }
     header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?') . '?bet=' . $quick_val
-        . (isset($_POST['bet_type'])  ? '&bet_type='  . urlencode($_POST['bet_type'])  : '')
-        . (isset($_POST['bet_value']) ? '&bet_value=' . urlencode($_POST['bet_value']) : ''));
+        . ($qt ? '&bet_type=' . urlencode($qt) : '')
+        . ($qv ? '&bet_value=' . urlencode($qv) : ''));
     exit;
 }
 
 $prefill_bet      = isset($_GET['bet'])       ? (int)    $_GET['bet']       : 50;
 $prefill_bet_type = isset($_GET['bet_type'])  ? (string) $_GET['bet_type']  : 'color';
 $prefill_bet_val  = isset($_GET['bet_value']) ? (string) $_GET['bet_value'] : 'red';
+
+// Parsuj bet_type_val z radio (format "type|value")
+if (isset($_POST['bet_type_val']) && str_contains($_POST['bet_type_val'], '|')) {
+    [$_POST['bet_type'], $_POST['bet_value']] = explode('|', $_POST['bet_type_val'], 2);
+}
+// Dla zakładu na numer: wartość pochodzi z osobnego inputa
+if (isset($_POST['bet_type']) && $_POST['bet_type'] === 'number' && isset($_POST['bet_number'])) {
+    $_POST['bet_value'] = (string)(int)$_POST['bet_number'];
+}
+
+// Zachowaj wybór zakładu z POST
+if (isset($_POST['bet_type']))  $prefill_bet_type = (string) $_POST['bet_type'];
+if (isset($_POST['bet_value'])) $prefill_bet_val  = (string) $_POST['bet_value'];
+if (isset($_POST['bet']))       $prefill_bet      = (int)    $_POST['bet'];
 
 // --- Reset salda ---
 if (isset($_POST['reset'])) {
@@ -36,9 +59,8 @@ if (isset($_POST['reset'])) {
     exit;
 }
 
-// Kolejność europejska kołowa
 $wheel_order = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
-$wheel_size  = count($wheel_order); // 37
+$wheel_size  = count($wheel_order);
 
 $roulette_colors = [
     0=>'green',
@@ -104,250 +126,77 @@ if (isset($_POST['play'])) {
             if ($won) {
                 $_SESSION['user_balance'] += $payout;
                 $message = 'Wygrałeś ' . $payout . ' żetonów!';
+                $win = $payout;
             } else {
                 $_SESSION['user_balance'] -= $bet;
                 $message = 'Przegrałeś ' . $bet . ' żetonów.';
+                $win = -$bet;
             }
             $balance          = $_SESSION['user_balance'];
             $prefill_bet      = $bet;
             $prefill_bet_type = $bet_type;
             $prefill_bet_val  = $bet_value;
             $result           = true;
+
+            $sql = "INSERT INTO game_history (user_id, game, bet, win, balance_after) VALUES ('$user_id', 'Ruletka', '$bet', '$win', '$balance')";
+            if (!mysqli_query($conn, $sql)) {
+                error_log('Błąd zapisu historii Ruletka: ' . mysqli_error($conn));
+            }
         }
     }
 }
 
-/*
- * Budujemy taśmę tak, żeby wynik zawsze lądował na środku
- * i po bokach były widoczne sąsiednie komórki.
- *
- * Schemat: [LEWY_BUFOR] [5 obrotów kołem] [WYNIK] [PRAWY_BUFOR]
- *
- * JS przesuwa taśmę tak, żeby komórka WYNIK trafiła dokładnie
- * pod złotą linię w centrum paska.
- * Lewy bufor = tyle komórek, żeby pasek był widocznie wypełniony
- * przed startem (startujemy od lewej krawędzi).
- */
-$REPEATS     = 5;   // ile pełnych obrotów przed wynikiem
-$SIDE_EXTRA  = 8;   // dodatkowe komórki po prawej od wyniku (widoczne sąsiedzi)
-
-// Indeks wylosowanego numeru w tablicy wheel_order
+// Budowa taśmy
+$REPEATS    = 5;
+$SIDE_EXTRA = 8;
 $result_wheel_idx = ($result_num !== null) ? (int) array_search($result_num, $wheel_order) : 0;
 
-// Buduję listę komórek PHP (tylko numery) — JS zna kolory
 $tape = [];
-// Lewy bufor (10 komórek widocznych na starcie + zapas)
 for ($i = 0; $i < 14; $i++) {
     $tape[] = $wheel_order[$i % $wheel_size];
 }
-// N pełnych obrotów
 for ($r = 0; $r < $REPEATS; $r++) {
     foreach ($wheel_order as $n) {
         $tape[] = $n;
     }
 }
-// Dociągnij do wylosowanego numeru (włącznie)
 for ($i = 0; $i <= $result_wheel_idx; $i++) {
     $tape[] = $wheel_order[$i];
 }
-// Prawy bufor (sąsiedzi po prawej)
 for ($i = 1; $i <= $SIDE_EXTRA; $i++) {
     $tape[] = $wheel_order[($result_wheel_idx + $i) % $wheel_size];
 }
-
-// Indeks komórki wyniku w tablicy $tape (ostatnia przed prawym buforem)
 $winner_cell_idx = count($tape) - $SIDE_EXTRA - 1;
+
+// Definicja przycisków zakładów
+$bet_buttons = [
+    ['type'=>'color',  'val'=>'red',   'cls'=>'rl-bet-btn--red',   'label'=>'🔴 Czerwone',    'payout'=>'1:1'],
+    ['type'=>'color',  'val'=>'black', 'cls'=>'rl-bet-btn--black', 'label'=>'⚫ Czarne',       'payout'=>'1:1'],
+    ['type'=>'parity', 'val'=>'even',  'cls'=>'rl-bet-btn--even',  'label'=>'↔ Parzyste',     'payout'=>'1:1'],
+    ['type'=>'parity', 'val'=>'odd',   'cls'=>'rl-bet-btn--odd',   'label'=>'↕ Nieparzyste',  'payout'=>'1:1'],
+    ['type'=>'half',   'val'=>'low',   'cls'=>'rl-bet-btn--low',   'label'=>'⬇ 1–18',         'payout'=>'1:1'],
+    ['type'=>'half',   'val'=>'high',  'cls'=>'rl-bet-btn--high',  'label'=>'⬆ 19–36',        'payout'=>'1:1'],
+    ['type'=>'dozen',  'val'=>'1st',   'cls'=>'rl-bet-btn--doz',   'label'=>'📌 1–12',         'payout'=>'2:1'],
+    ['type'=>'dozen',  'val'=>'2nd',   'cls'=>'rl-bet-btn--doz',   'label'=>'📌 13–24',        'payout'=>'2:1'],
+    ['type'=>'dozen',  'val'=>'3rd',   'cls'=>'rl-bet-btn--doz',   'label'=>'📌 25–36',        'payout'=>'2:1'],
+    ['type'=>'color',  'val'=>'green', 'cls'=>'rl-bet-btn--green', 'label'=>'🟢 Zero (0)',     'payout'=>'17:1'],
+];
 ?>
-<!-- RULETKA — fragment do osadzenia; <style> można przenieść do .css -->
-
-<style>
-/* ════════════════════════════════
-   PASEK RULETKI
-   ════════════════════════════════ */
-.rl-wrap {
-    margin: 20px 0 32px;
-    position: relative;
-    padding-top: 28px; /* miejsce na strzałkę */
-}
-
-/* Strzałka wskaźnik */
-.rl-arrow {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 22px;
-    color: var(--accent-color, #c9a84c);
-    line-height: 1;
-    z-index: 20;
-    filter: drop-shadow(0 0 4px var(--accent-color, #c9a84c));
-}
-
-.rl-strip-outer {
-    width: 100%;
-    overflow: hidden;
-    border-radius: 10px;
-    border: 3px solid var(--border-color, #5a4a2a);
-    position: relative;
-    height: 110px;       /* większy pasek */
-    background: #0d0d0d;
-    box-shadow: 0 4px 24px rgba(0,0,0,.7) inset,
-                0 0 0 1px rgba(255,255,255,.04);
-}
-
-/* Złota linia środkowa */
-.rl-strip-outer::after {
-    content: '';
-    position: absolute;
-    top: 0; bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 3px;
-    background: var(--accent-color, #c9a84c);
-    z-index: 9;
-    box-shadow: 0 0 10px var(--accent-color, #c9a84c),
-                0 0 20px rgba(201,168,76,.4);
-    pointer-events: none;
-}
-
-/* Zaciemnienie brzegów (efekt głębi) */
-.rl-strip-outer::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 8;
-    background: linear-gradient(
-        to right,
-        rgba(0,0,0,.55) 0%,
-        transparent 22%,
-        transparent 78%,
-        rgba(0,0,0,.55) 100%
-    );
-    pointer-events: none;
-    border-radius: 8px;
-}
-
-/* Taśma */
-.rl-strip {
-    display: flex;
-    height: 100%;
-    will-change: transform;
-    /* Startujemy przesunięci tak, żeby bufor wypełniał widok */
-    transform: translateX(0);
-}
-
-/* Komórka */
-.rl-cell {
-    min-width: 90px;   
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.7rem;
-    font-weight: 800;
-    color: #fff;
-    border-right: 2px solid rgba(0,0,0,.3);
-    user-select: none;
-    flex-shrink: 0;
-    text-shadow: 0 2px 4px rgba(0,0,0,.8);
-    transition: filter .2s;
-}
-.rl-cell--red   { background: linear-gradient(160deg, #d63031, #a52020); }
-.rl-cell--black { background: linear-gradient(160deg, #2d2d2d, #111); }
-.rl-cell--green { background: linear-gradient(160deg, #27ae60, #1a6e3c); }
-
-/* Podświetlenie zwycięzcy */
-.rl-cell--winner {
-    outline: 4px solid var(--accent-color, #c9a84c);
-    outline-offset: -4px;
-    animation: rl-pulse .7s ease-in-out 4;
-    z-index: 5;
-    position: relative;
-}
-@keyframes rl-pulse {
-    0%,100% { filter: brightness(1); }
-    50%      { filter: brightness(1.6); }
-}
-
-.coin-game__message.rl-hidden {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-}
-
-/* ════════════════════════════════
-   PRZYCISKI ZAKŁADÓW
-   ════════════════════════════════ */
-.rl-bets {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin: 14px 0 6px;
-}
-.rl-bet-btn {
-    padding: 11px 8px;
-    border-radius: 8px;
-    border: 2px solid transparent;
-    cursor: pointer;
-    font-size: .87rem;
-    font-weight: 600;
-    color: #fff;
-    background: #2a2a2a;
-    transition: border-color .15s, transform .1s, background .15s;
-    text-align: center;
-    line-height: 1.35;
-}
-.rl-bet-btn:hover  { background: #363636; transform: translateY(-1px); }
-.rl-bet-btn:active { transform: translateY(0); }
-.rl-bet-btn.rl-active {
-    border-color: var(--accent-color, #c9a84c);
-    background: #3a2f10;
-}
-
-.rl-bet-btn--red   { border-left: 5px solid #c0392b; }
-.rl-bet-btn--black { border-left: 5px solid #777; }
-.rl-bet-btn--green { border-left: 5px solid #27ae60; }
-.rl-bet-btn--even,
-.rl-bet-btn--odd   { border-left: 5px solid #5b8dee; }
-.rl-bet-btn--low,
-.rl-bet-btn--high  { border-left: 5px solid #9b59b6; }
-.rl-bet-btn--doz   { border-left: 5px solid #e67e22; }
-.rl-bet-btn--num   { border-left: 5px solid var(--accent-color, #c9a84c); grid-column: 1/-1; }
-
-.rl-num-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-.rl-num-input {
-    width: 72px;
-    padding: 5px 8px;
-    border-radius: 6px;
-    border: 2px solid #444;
-    background: #1a1a1a;
-    color: #fff;
-    font-size: 1rem;
-    font-weight: 700;
-    text-align: center;
-}
-.rl-num-input:focus { border-color: var(--accent-color, #c9a84c); outline: none; }
-</style>
 
 <div class="coin-game">
 
     <p class="coin-game__title">Ruletka</p>
     <p class="coin-game__balance">
-        Saldo: <strong><?= (int) $balance ?> żetonów</strong>
+        Saldo: <strong id="rl-balance-display"><?= (int) $balance_before ?></strong> żetonów
     </p>
 
-    <!-- ══════════════ PASEK RULETKI ══════════════ -->
+    <!-- PASEK RULETKI -->
     <div class="rl-wrap">
         <div class="rl-arrow">▼</div>
         <div class="rl-strip-outer" id="rl-outer">
             <div class="rl-strip" id="rl-strip">
                 <?php foreach ($tape as $idx => $n):
-                    $col = $roulette_colors[$n];
+                    $col      = $roulette_colors[$n];
                     $isWinner = ($result_num !== null && $idx === $winner_cell_idx);
                 ?>
                 <div class="rl-cell rl-cell--<?= $col ?>"
@@ -361,84 +210,45 @@ $winner_cell_idx = count($tape) - $SIDE_EXTRA - 1;
 
     <hr class="coin-game__divider">
 
-    <form method="POST" action="" id="rl-form">
+    <form method="POST" action="">
 
-        <!-- ══ ZAKŁADY ══ -->
         <span class="coin-game__label">Rodzaj zakładu</span>
-        <div class="rl-bets" id="rl-bets">
+        <div class="rl-bets">
 
-            <button type="button" class="rl-bet-btn rl-bet-btn--red"
-                    data-type="color" data-val="red"
-                    <?= ($prefill_bet_type==='color'&&$prefill_bet_val==='red') ? 'data-selected="1"' : '' ?>>
-                🔴 Czerwone<br><small style="font-weight:400;opacity:.7">wypłata 1:1</small>
-            </button>
-            <button type="button" class="rl-bet-btn rl-bet-btn--black"
-                    data-type="color" data-val="black"
-                    <?= ($prefill_bet_type==='color'&&$prefill_bet_val==='black') ? 'data-selected="1"' : '' ?>>
-                ⚫ Czarne<br><small style="font-weight:400;opacity:.7">wypłata 1:1</small>
-            </button>
+            <?php foreach ($bet_buttons as $btn):
+                $checked = ($prefill_bet_type === $btn['type'] && $prefill_bet_val === $btn['val']);
+                $id      = 'rl-' . $btn['type'] . '-' . $btn['val'];
+            ?>
+            <input type="radio" name="bet_type_val"
+                   id="<?= $id ?>"
+                   value="<?= $btn['type'] ?>|<?= $btn['val'] ?>"
+                   <?= $checked ? 'checked' : '' ?>>
+            <label for="<?= $id ?>" class="rl-bet-btn <?= $btn['cls'] ?>">
+                <?= $btn['label'] ?><br>
+                <small style="font-weight:400;opacity:.7">wypłata <?= $btn['payout'] ?></small>
+            </label>
+            <?php endforeach; ?>
 
-            <button type="button" class="rl-bet-btn rl-bet-btn--even"
-                    data-type="parity" data-val="even"
-                    <?= ($prefill_bet_type==='parity'&&$prefill_bet_val==='even') ? 'data-selected="1"' : '' ?>>
-                ↔ Parzyste<br><small style="font-weight:400;opacity:.7">wypłata 1:1</small>
-            </button>
-            <button type="button" class="rl-bet-btn rl-bet-btn--odd"
-                    data-type="parity" data-val="odd"
-                    <?= ($prefill_bet_type==='parity'&&$prefill_bet_val==='odd') ? 'data-selected="1"' : '' ?>>
-                ↕ Nieparzyste<br><small style="font-weight:400;opacity:.7">wypłata 1:1</small>
-            </button>
-
-            <button type="button" class="rl-bet-btn rl-bet-btn--low"
-                    data-type="half" data-val="low"
-                    <?= ($prefill_bet_type==='half'&&$prefill_bet_val==='low') ? 'data-selected="1"' : '' ?>>
-                ⬇ 1–18<br><small style="font-weight:400;opacity:.7">wypłata 1:1</small>
-            </button>
-            <button type="button" class="rl-bet-btn rl-bet-btn--high"
-                    data-type="half" data-val="high"
-                    <?= ($prefill_bet_type==='half'&&$prefill_bet_val==='high') ? 'data-selected="1"' : '' ?>>
-                ⬆ 19–36<br><small style="font-weight:400;opacity:.7">wypłata 1:1</small>
-            </button>
-
-            <button type="button" class="rl-bet-btn rl-bet-btn--doz"
-                    data-type="dozen" data-val="1st"
-                    <?= ($prefill_bet_type==='dozen'&&$prefill_bet_val==='1st') ? 'data-selected="1"' : '' ?>>
-                📌 1–12<br><small style="font-weight:400;opacity:.7">wypłata 2:1</small>
-            </button>
-            <button type="button" class="rl-bet-btn rl-bet-btn--doz"
-                    data-type="dozen" data-val="2nd"
-                    <?= ($prefill_bet_type==='dozen'&&$prefill_bet_val==='2nd') ? 'data-selected="1"' : '' ?>>
-                📌 13–24<br><small style="font-weight:400;opacity:.7">wypłata 2:1</small>
-            </button>
-            <button type="button" class="rl-bet-btn rl-bet-btn--doz"
-                    data-type="dozen" data-val="3rd"
-                    <?= ($prefill_bet_type==='dozen'&&$prefill_bet_val==='3rd') ? 'data-selected="1"' : '' ?>>
-                📌 25–36<br><small style="font-weight:400;opacity:.7">wypłata 2:1</small>
-            </button>
-
-            <button type="button" class="rl-bet-btn rl-bet-btn--green"
-                    data-type="color" data-val="green"
-                    <?= ($prefill_bet_type==='color'&&$prefill_bet_val==='green') ? 'data-selected="1"' : '' ?>>
-                🟢 Zero (0)<br><small style="font-weight:400;opacity:.7">wypłata 17:1</small>
-            </button>
-
-            <button type="button" class="rl-bet-btn rl-bet-btn--num"
-                    data-type="number" data-val=""
-                    id="rl-num-btn"
-                    <?= ($prefill_bet_type==='number') ? 'data-selected="1"' : '' ?>>
+            <!-- Numer bezpośredni -->
+            <?php
+            $numChecked = ($prefill_bet_type === 'number');
+            $numVal     = $numChecked ? (int) $prefill_bet_val : '';
+            ?>
+            <input type="radio" name="bet_type_val"
+                   id="rl-number"
+                   value="number|0"
+                   <?= $numChecked ? 'checked' : '' ?>>
+            <label for="rl-number" class="rl-bet-btn rl-bet-btn--num">
                 <div class="rl-num-row">
-                    <span>🎯 Numer:</span>
-                    <input type="number" class="rl-num-input" id="rl-num-val"
+                    <span>🎯 Numer (0–36):</span>
+                    <input type="number" class="rl-num-input" name="bet_number"
                            min="0" max="36" placeholder="0–36"
-                           value="<?= ($prefill_bet_type==='number') ? (int)$prefill_bet_val : '' ?>"
-                           onclick="event.stopPropagation();">
+                           value="<?= $numVal ?>">
                     <small style="opacity:.65;font-weight:400;">wypłata 35:1</small>
                 </div>
-            </button>
-        </div>
+            </label>
 
-        <input type="hidden" name="bet_type"  id="rl-hidden-type"  value="<?= htmlspecialchars($prefill_bet_type) ?>">
-        <input type="hidden" name="bet_value" id="rl-hidden-val"   value="<?= htmlspecialchars($prefill_bet_val) ?>">
+        </div>
 
         <hr class="coin-game__divider">
 
@@ -488,97 +298,57 @@ $winner_cell_idx = count($tape) - $SIDE_EXTRA - 1;
 
 <script>
 (function () {
-
-    /* ── Zaznaczanie przycisków zakładu ── */
-    const hiddenType = document.getElementById('rl-hidden-type');
-    const hiddenVal  = document.getElementById('rl-hidden-val');
-    const numInput   = document.getElementById('rl-num-val');
-    const numBtn     = document.getElementById('rl-num-btn');
-
-    document.querySelectorAll('#rl-bets .rl-bet-btn').forEach(btn => {
-        if (btn.dataset.selected === '1') btn.classList.add('rl-active');
-        btn.addEventListener('click', function () {
-            document.querySelectorAll('#rl-bets .rl-bet-btn').forEach(b => b.classList.remove('rl-active'));
-            this.classList.add('rl-active');
-            hiddenType.value = this.dataset.type;
-            hiddenVal.value  = (this.dataset.type === 'number')
-                ? (numInput ? numInput.value : '')
-                : this.dataset.val;
-        });
-    });
-
-    if (numInput) {
-        numInput.addEventListener('input', function () {
-            hiddenVal.value  = this.value;
-            hiddenType.value = 'number';
-            document.querySelectorAll('#rl-bets .rl-bet-btn').forEach(b => b.classList.remove('rl-active'));
-            numBtn.classList.add('rl-active');
-        });
-    }
-
-    /* ── Animacja paska ── */
-    const strip      = document.getElementById('rl-strip');
-    const outer      = document.getElementById('rl-outer');
-    const messageEl  = document.querySelector('.coin-game__message');
-    const PLAYED     = <?= $result !== null ? 'true' : 'false' ?>;
-    const WINNER_IDX = <?= (int) $winner_cell_idx ?>;
+    const strip       = document.getElementById('rl-strip');
+    const outer       = document.getElementById('rl-outer');
+    const messageEl   = document.querySelector('.coin-game__message');
+    const balanceEl   = document.getElementById('rl-balance-display');
+    const PLAYED      = <?= $result !== null ? 'true' : 'false' ?>;
+    const WIN_IDX     = <?= (int) $winner_cell_idx ?>;
+    const NEW_BALANCE = <?= (int) $balance ?>;
 
     if (!strip || !outer) return;
 
-    const cellElem    = strip.querySelector('.rl-cell');
-    const CELL_W      = cellElem ? Math.round(cellElem.getBoundingClientRect().width) : 92;
-    const outerW      = outer.offsetWidth;
-    const centerOff   = Math.round((outerW - CELL_W) / 2);
-    const winnerCell  = strip.querySelector('#rl-winner');
-    const winnerIndex = winnerCell ? Array.prototype.indexOf.call(strip.children, winnerCell) : WINNER_IDX;
+    const cellElem  = strip.querySelector('.rl-cell');
+    const CELL_W    = cellElem ? Math.round(cellElem.getBoundingClientRect().width) : 90;
+    const centerOff = Math.round((outer.offsetWidth - CELL_W) / 2);
 
+    // Ukryj komunikat i zablokuj formularz podczas animacji
     if (PLAYED && messageEl) {
-        messageEl.classList.add('rl-hidden');
+        messageEl.style.opacity    = '0';
+        messageEl.style.visibility = 'hidden';
     }
 
     if (!PLAYED) {
-        // Przed grą: wyśrodkuj taśmę na ~7. komórce (środek lewego bufora)
-        // żeby pasek był kolorowy, nie pusty
-        const startX = -(7 * CELL_W) + centerOff;
         strip.style.transition = 'none';
-        strip.style.transform  = `translateX(${startX}px)`;
+        strip.style.transform  = `translateX(${-(7 * CELL_W) + centerOff}px)`;
         return;
     }
 
-    // Pozycja startowa: taśma ustawiona na początku (komórka 0 na środku)
-
-    // Komórka wyniku ma wylądować na środku paska
-    const startX  = centerOff;                             // startujemy od środka (komórka 0 widoczna)
-    const targetX = -(winnerIndex * CELL_W) + centerOff;    // wynik na środku
-
-    // Ustaw pozycję startową bez animacji
+    // Start: komórka 0 na środku
     strip.style.transition = 'none';
-    strip.style.transform  = `translateX(${startX}px)`;
+    strip.style.transform  = `translateX(${centerOff}px)`;
 
-    // Wymuszenie reflow, potem odpal animację
-    void strip.offsetWidth;
+    void strip.offsetWidth; // reflow
 
-    strip.style.transition = 'transform 6s cubic-bezier(0.05, 0.0, 0.15, 1.0)';
-    strip.style.transform  = `translateX(${targetX}px)`;
+    const ANIM_MS = 6000;
 
-    // Po zatrzymaniu — podświetl zwycięzcę
-    strip.addEventListener('transitionend', function onEnd() {
-        strip.removeEventListener('transitionend', onEnd);
+    strip.style.transition = `transform ${ANIM_MS}ms cubic-bezier(0.05, 0.0, 0.15, 1.0)`;
+    strip.style.transform  = `translateX(${-(WIN_IDX * CELL_W) + centerOff}px)`;
+
+    setTimeout(function () {
+        // Podświetl wynik
         const winner = document.getElementById('rl-winner');
         if (winner) winner.classList.add('rl-cell--winner');
+
+        // Zaktualizuj saldo w DOM (PHP już wyliczył nową wartość)
+        if (balanceEl) balanceEl.textContent = NEW_BALANCE;
+        if (typeof updateHeaderBalance === 'function') updateHeaderBalance(NEW_BALANCE);
+
+        // Pokaż komunikat
         if (messageEl) {
-            messageEl.classList.remove('rl-hidden');
+            messageEl.style.opacity    = '';
+            messageEl.style.visibility = '';
         }
-    });
-
-    /* ── Synchronizacja salda ── */
-    const balance = <?= (int) $balance ?>;
-    if (typeof updateHeaderBalance === 'function') updateHeaderBalance(balance);
-    document.getElementById('rl-form')?.addEventListener('submit', () => {
-        setTimeout(() => {
-            if (typeof updateHeaderBalance === 'function') updateHeaderBalance(balance);
-        }, 100);
-    });
-
+    }, ANIM_MS);
 })();
 </script>

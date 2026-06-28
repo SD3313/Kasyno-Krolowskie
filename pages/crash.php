@@ -4,9 +4,13 @@ if(!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     exit;
 }
 
-
 $balance = (int) $_SESSION['user_balance'];
 
+// Pobieramy historię gier z sesji (jeśli nie istnieje, tworzymy pustą tablicę)
+if (!isset($_SESSION['crash_history'])) {
+    $_SESSION['crash_history'] = []; 
+}
+$history = $_SESSION['crash_history'];
 ?>
 
 <div class="cg">
@@ -43,16 +47,21 @@ $balance = (int) $_SESSION['user_balance'];
 
   <div class="msg" id="msgBox">Postaw zakład i kliknij start.</div>
 
-  <div class="history" id="histBox"></div>
-
+  <div class="history" id="histBox">
+    <?php foreach ($history as $h): ?>
+      <span class="hchip <?= $h['won'] ? 'w' : 'l' ?>"><?= number_format($h['mult'], 2) ?>×</span>
+    <?php endforeach; ?>
+  </div>
   
   <a href="home" class="back-btn">← Wróć do gier</a>
 </div>
 
 <script>
 (function(){
-  // Saldo pobrane z PHP sesji — JavaScript synchronizuje po każdej rundzie przez fetch
+  // Dane wstrzyknięte bezpośrednio z PHP do JavaScriptu na starcie
   let balance = <?= $balance ?>;
+  let history = <?= json_encode($history) ?>;
+  
   let state = 'idle';
   let currentMult = 1.0;
   let crashAt = 1.0;
@@ -61,7 +70,6 @@ $balance = (int) $_SESSION['user_balance'];
   let cashedOut = false;
   let rafId = null;
   let startTime = 0;
-  let history = [];
   let points = [];
   let countdownVal = 3;
   let countdownInt = null;
@@ -87,6 +95,7 @@ $balance = (int) $_SESSION['user_balance'];
     draw();
   }
 
+  // Losowanie uproszczone w JS, docelowo crashAt powinno wracać z pliku crash_update.php przy rejestracji zakładu!
   function genCrash(){
     const r = Math.random();
     if(r < 0.05) return 1.0;
@@ -96,24 +105,24 @@ $balance = (int) $_SESSION['user_balance'];
   function multToTime(m){ return Math.pow((m - 1) / 0.06, 1 / 1.3); }
   function timeToMult(t){ return 1 + 0.06 * Math.pow(t, 1.3); }
 
-  // Zapisuje wynik rundy do sesji PHP przez fetch
-  async function saveResult(delta){
+  // Synchronizacja wyniku z serwerem PHP
+  async function saveResult(delta, currentMultiplier, checkWon){
     try {
-      const response = await fetch('crash_update.php', {
+      const response = await fetch('pages/crash_update.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'delta=' + delta
+        // Przekazujemy więcej danych, by serwer mógł zaktualizować $_SESSION['crash_history'] i bazę danych
+        body: 'delta=' + delta + '&mult=' + currentMultiplier + '&won=' + (checkWon ? 1 : 0) + '&bet=' + bet
       });
       const data = await response.json();
       balance = data.balance;
       updateUI();
       
-      // Aktualizuj globalnie (nagłówek + gra)
       if (typeof updateHeaderBalance === 'function') {
         updateHeaderBalance(balance);
       }
     } catch(err) {
-      console.error('Błąd:', err);
+      console.error('Błąd połączenia z serwerem:', err);
       balance = Math.max(0, balance + delta);
       updateUI();
     }
@@ -203,21 +212,16 @@ $balance = (int) $_SESSION['user_balance'];
     ctx.textAlign = 'left';
   }
 
-  function updateUI(){
-    balTxt.textContent = balance + ' żetonów';
-    betInput.max = balance;
-  }
-
   function setMsg(txt, cls = ''){
     msgBox.className = 'msg' + (cls ? ' ' + cls : '');
     msgBox.textContent = txt;
   }
 
-  function addHistory(mult, won){
+  function renderHistoryUI(mult, won){
     history.unshift({ mult, won });
     if(history.length > 10) history.pop();
     histBox.innerHTML = history.map(h =>
-      `<span class="hchip ${h.won ? 'w' : 'l'}">${h.mult.toFixed(2)}×</span>`
+      `<span class="hchip ${h.won ? 'w' : 'l'}">${parseFloat(h.mult).toFixed(2)}×</span>`
     ).join('');
   }
 
@@ -300,8 +304,8 @@ $balance = (int) $_SESSION['user_balance'];
     multVal.className = 'mult-val live';
     multLabel.textContent = 'wypłacono!';
     setMsg(`Wypłacono przy ${currentMult.toFixed(2)}× — zysk: +${delta} żetonów 🎉`, 'win');
-    addHistory(currentMult, true);
-    await saveResult(delta);
+    renderHistoryUI(currentMult, true);
+    await saveResult(delta, currentMult, true);
     endRound();
   }
 
@@ -315,8 +319,8 @@ $balance = (int) $_SESSION['user_balance'];
     multLabel.textContent = 'crash!';
     if(!cashedOut){
       setMsg(`Crash przy ${crashAt.toFixed(2)}× — strata: -${bet} żetonów`, 'lose');
-      addHistory(crashAt, false);
-      await saveResult(-bet);
+      renderHistoryUI(crashAt, false);
+      await saveResult(-bet, crashAt, false);
     }
     endRound();
   }

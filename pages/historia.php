@@ -44,7 +44,7 @@ $initials = mb_substr($initials, 0, 2);
         <?php else: ?>
             <div class="sidebar-name"><?= htmlspecialchars($user) ?></div>
         <?php endif; ?>
-        <div class="sidebar-role"><?= htmlspecialchars($role) ?></div>
+        
     </div>
 
     <nav class="sidebar-nav">

@@ -1,3 +1,9 @@
+<?php
+if (isset($_SESSION['user_id'])) {
+    require_once __DIR__ . '/topscore.php';
+}
+?>
+
 <div class="games-grid">
 
     <a href="bomb_sweep" class="game-card-link">

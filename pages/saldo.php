@@ -64,7 +64,7 @@ $show_form = isset($_SESSION['show_form']) ? $_SESSION['show_form'] : false;
         <?php else: ?>
             <div class="sidebar-name"><?= htmlspecialchars($user) ?></div>
         <?php endif; ?>
-        <div class="sidebar-role"><?= htmlspecialchars($role) ?></div>
+        
     </div>
 
     <nav class="sidebar-nav">

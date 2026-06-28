@@ -6,6 +6,7 @@ $logged_in = isset($_SESSION['user_id']);
 $pic      = $_SESSION['profile_pic'] ?? '';
 $user     = $_SESSION['user']       ?? 'Gracz';
 
+$baseUrl = '/kasyno/Kasyno-Krolowskie/';
 
 $initials = '';
 $parts = explode(' ', $user);
@@ -24,7 +25,7 @@ $initials = mb_substr($initials, 0, 2);
     <link rel="icon" type="image/png" href="photos/icona_korona.png">
     
 
-    <link rel="stylesheet" href="style.css?1">
+    <link rel="stylesheet" href="<?= $baseUrl ?>style.css?v=1">
 </head>
 <body>
     <div class="container">
@@ -32,6 +33,10 @@ $initials = mb_substr($initials, 0, 2);
             <a href="home" class="logo">
                 <img src="/kasyno/Kasyno-Krolowskie/photos/logo.svg" alt="Logo Kasyno Królewskie">
             </a>
+
+            <?php if ($logged_in && (string)($_SESSION['role'] ?? '') === 'admin'): ?>
+                <a href="admin" class="admin-link">Panel administracji</a>
+            <?php endif; ?>
 
             <?php if ($logged_in): ?>
                 <a href="profil" class="profil-link">    
