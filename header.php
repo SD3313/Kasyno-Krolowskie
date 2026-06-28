@@ -25,7 +25,7 @@ $initials = mb_substr($initials, 0, 2);
     <link rel="icon" type="image/png" href="photos/icona_korona.png">
     
 
-    <link rel="stylesheet" href="<?= $baseUrl ?>style.css?v=1">
+    <link rel="stylesheet" href="<?= $baseUrl ?>style.css?v=21">
 </head>
 <body>
     <div class="container">

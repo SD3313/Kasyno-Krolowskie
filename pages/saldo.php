@@ -90,7 +90,7 @@ $show_form = isset($_SESSION['show_form']) ? $_SESSION['show_form'] : false;
     <a href="home" class="sidebar-back">← Wróć do gier</a>
 </div>
     <div class="saldo-container">
-        <h1>💰 Zarządzanie Saldem</h1>
+        <h1>Zarządzanie Saldem</h1>
 
         <div class="saldo-info">
             <p>Twoje obecne saldo:</p>
