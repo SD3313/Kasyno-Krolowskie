@@ -75,7 +75,6 @@ if (!in_array($prefill_count,   $SPIN_COUNTS, true)) $prefill_count   = 1;
 if (!in_array($prefill_players, $PLAYER_OPTS, true)) $prefill_players = 2;
 if (!in_array($prefill_mode,    $MODE_OPTS,   true)) $prefill_mode    = 'normal';
 
-/* RESET */
 if (isset($_POST['reset'])) {
     $_SESSION['user_balance'] = 1000;
     header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
@@ -295,7 +294,6 @@ $js_data = [
         : [],
 ];
 
-/* Kolory komórek */
 function multColor(float $m): string {
     if ($m < 0.5)  return '#3d1a1a';
     if ($m < 1.0)  return '#4a2e10';
@@ -525,7 +523,6 @@ function multTextColor(float $m): string {
 <script>
 (function () {
 
-    /* ── Odczyt danych z PHP ── */
     const D           = JSON.parse(document.getElementById('cb-game-data').textContent);
     const PLAYED      = D.played;
     const NUM_PLAYERS = D.numPlayers;
@@ -546,7 +543,6 @@ function multTextColor(float $m): string {
     const CENTER        = Math.floor(OUTER_H / 2) - Math.floor(CELL_H / 2);
     const ANIM_DURATION = 5500;
 
-    /* ── Konfiguracja przycisków ── */
     function bindGroup(selector, hiddenId, onChange) {
         const hidden = document.getElementById(hiddenId);
         document.querySelectorAll(selector).forEach(btn => {

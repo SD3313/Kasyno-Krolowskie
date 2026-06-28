@@ -15,7 +15,6 @@ $won     = null;
 $message = '';
 $error   = '';
 
-// --- Szybkie zakłady (submit przez name="quick_bet") ---
 if (isset($_POST['quick_bet'])) {
     $fraction  = (float) $_POST['quick_bet'];
     $_SESSION['bet'] = max(1, (int) floor($_SESSION['user_balance'] * $fraction));
@@ -24,18 +23,15 @@ if (isset($_POST['quick_bet'])) {
     exit;
 }
 
-// --- Pobierz wartości z GET (po przekierowaniu szybkiego zakładu) ---
 $prefill_bet    = isset($_SESSION['bet'])    ? (int)   $_SESSION['bet']    : 50;
 $prefill_choice = isset($_SESSION['choice']) ? (string) $_SESSION['choice'] : '';
 
-// --- Reset salda ---
 if (isset($_POST['reset'])) {
     $_SESSION['user_balance'] = 1000;
     header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
     exit;
 }
 
-// --- Główna gra ---
 if (isset($_POST['play'])) {
     $bet    = (int)    ($_POST['bet']    ?? 0);
     $choice = (string) ($_POST['choice'] ?? '');
@@ -78,7 +74,6 @@ if (isset($_POST['play'])) {
     }
 }
 
-// --- Pomocnicze wartości do szablonu ---
 $coin_icon = '🪙';
 $coin_label = '';
 if ($result === 'orzel')  { $coin_icon = '🦅'; $coin_label = 'Orzeł'; }
@@ -93,12 +88,6 @@ $coin_class = 'coin-game__coin';
 if ($result) $coin_class .= ' coin-game__coin--toss';
 if ($result) $coin_class .= $won ? ' coin-game__coin--win' : ' coin-game__coin--lose';
 ?>
-<!-- ============================================================
-     COIN FLIP GAME — fragment do osadzenia w istniejącym <div>
-     Blok <style> przeznaczony do przeniesienia do .css
-     ============================================================ -->
-
-
 <div class="coin-game">
 
     <p class="coin-game__title">Rzut Monetą</p>
@@ -193,14 +182,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Po wysłaniu formularza, zaraz potem też
 document.querySelectorAll('form').forEach(form => {
     form.addEventListener('submit', function() {
         setTimeout(() => {
             const balance = <?= (int) $balance ?>;
-            if (typeof updateHeaderBalance === 'function') {
-                updateHeaderBalance(balance);
-            }
         }, 100);
     });
 });

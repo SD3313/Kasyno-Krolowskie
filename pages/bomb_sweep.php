@@ -109,7 +109,7 @@ if (isset($_POST['reveal']) && $game && $game['status'] === 'active') {
     }
 }
 
-// ── Wypłata ──────────────────────────────────────────────────────
+
 if (isset($_POST['cashout']) && $game && $game['status'] === 'active' && count($game['revealed']) > 0) {
     $game['status'] = 'won';
     $_SESSION['user_balance'] += $game['winnings'];
@@ -126,7 +126,7 @@ if (isset($_POST['cashout']) && $game && $game['status'] === 'active' && count($
     }
 }
 
-// ── Odśwież zmienne ──────────────────────────────────────────────
+
 $game    = $_SESSION['bs_game'] ?? null;
 $balance = (int) $_SESSION['user_balance'];
 
@@ -145,7 +145,6 @@ function bs_calc_mult(int $cells, int $bombs, int $revealed): float {
     return round($mult * 0.97, 3);
 }
 
-// Komunikat statusu
 if ($error) {
     $inline_text  = $error;
     $inline_class = ' bs__message--error';
@@ -278,7 +277,7 @@ if ($error) {
     </div>
     <?php endif; ?>
 
-    <?php else: /* Brak aktywnej gry – pokaż konfigurację */ ?>
+    <?php else: ?>
 
     <!-- ── Konfiguracja ──────────────────────────────────────────── -->
     <form method="POST">

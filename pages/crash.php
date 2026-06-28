@@ -6,7 +6,6 @@ if(!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 
 $balance = (int) $_SESSION['user_balance'];
 
-// Pobieramy historię gier z sesji (jeśli nie istnieje, tworzymy pustą tablicę)
 if (!isset($_SESSION['crash_history'])) {
     $_SESSION['crash_history'] = []; 
 }
@@ -58,7 +57,6 @@ $history = $_SESSION['crash_history'];
 
 <script>
 (function(){
-  // Dane wstrzyknięte bezpośrednio z PHP do JavaScriptu na starcie
   let balance = <?= $balance ?>;
   let history = <?= json_encode($history) ?>;
   
@@ -95,7 +93,7 @@ $history = $_SESSION['crash_history'];
     draw();
   }
 
-  // Losowanie uproszczone w JS, docelowo crashAt powinno wracać z pliku crash_update.php przy rejestracji zakładu!
+
   function genCrash(){
     const r = Math.random();
     if(r < 0.05) return 1.0;
@@ -111,7 +109,6 @@ $history = $_SESSION['crash_history'];
       const response = await fetch('pages/crash_update.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        // Przekazujemy więcej danych, by serwer mógł zaktualizować $_SESSION['crash_history'] i bazę danych
         body: 'delta=' + delta + '&mult=' + currentMultiplier + '&won=' + (checkWon ? 1 : 0) + '&bet=' + bet
       });
       const data = await response.json();
