@@ -12,7 +12,8 @@ if (isset($_POST['id'])) {
     $result = mysqli_query($conn, "SELECT profile_pic FROM users WHERE user_id=$id");
     $row = mysqli_fetch_assoc($result); 
     if ($row) {
-        $file = $row['profile_pic'];
+        $file = $row['profile_pic']; 
+        echo $file;
         $null = NULL;
         $stmt = $conn->prepare("UPDATE users SET profile_pic = ? WHERE user_id = ?");
         $stmt->bind_param("si", $null, $user_id);
